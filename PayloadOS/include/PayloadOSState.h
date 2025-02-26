@@ -15,6 +15,7 @@ namespace PayloadOS{
             const char* name;
             void (*init)();
             void (*loop)();
+            void (*end)();
             States (*next)();
             Interpreter::CommandList* commands;
         };
@@ -52,19 +53,19 @@ namespace PayloadOS{
             //creation of the state table------------------------------------------------------
             static constexpr std::array<StateData, PayloadOS_NumberOfStates> mapStateData(){
                 return{{
-                    {"Fail", nullptr, nullptr, nullptr, nullptr},       //Fail
-                    {"Debug", nullptr, nullptr, nullptr, nullptr},      //Debug
-                    {"Startup", nullptr, nullptr, nullptr, nullptr},    //Startup
-                    {"Standby", nullptr, nullptr, nullptr, nullptr},    //Standby
-                    {"Armed", nullptr, nullptr, nullptr, nullptr},      //Armed
-                    {"Boost", nullptr, nullptr, nullptr, nullptr},      //Boost
-                    {"Coast", nullptr, nullptr, nullptr, nullptr},      //Coast
-                    {"Drogue", nullptr, nullptr, nullptr, nullptr},     //Drogue
-                    {"Main", nullptr, nullptr, nullptr, nullptr},       //Main
-                    {"Landed", nullptr, nullptr, nullptr, nullptr},     //Landed
-                    {"Processing", nullptr, nullptr, nullptr, nullptr}, //Processing
-                    {"Transmit", nullptr, nullptr, nullptr, nullptr},   //Transmit
-                    {"RRS", nullptr, nullptr, nullptr, nullptr},        //RRS
+                    {"Fail", nullptr, nullptr, nullptr, nullptr, nullptr},       //Fail
+                    {"Debug", nullptr, nullptr, nullptr, nullptr, nullptr},      //Debug
+                    {"Startup", nullptr, nullptr, nullptr, nullptr, nullptr},    //Startup
+                    {"Standby", nullptr, nullptr, nullptr, nullptr, nullptr},    //Standby
+                    {"Armed", nullptr, nullptr, nullptr, nullptr, nullptr},      //Armed
+                    {"Boost", nullptr, nullptr, nullptr, nullptr, nullptr},      //Boost
+                    {"Coast", nullptr, nullptr, nullptr, nullptr, nullptr},      //Coast
+                    {"Drogue", nullptr, nullptr, nullptr, nullptr, nullptr},     //Drogue
+                    {"Main", nullptr, nullptr, nullptr, nullptr, nullptr},       //Main
+                    {"Landed", nullptr, nullptr, nullptr, nullptr, nullptr},     //Landed
+                    {"Processing", nullptr, nullptr, nullptr, nullptr, nullptr}, //Processing
+                    {"Transmit", nullptr, nullptr, nullptr, nullptr, nullptr},   //Transmit
+                    {"RRS", nullptr, nullptr, nullptr, nullptr, nullptr},        //RRS
                 }};
             }
             //---------------------------------------------------------------------------------
