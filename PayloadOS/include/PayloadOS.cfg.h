@@ -47,6 +47,7 @@
 
 //Undefines------------------------------------
 
+/*
 #undef PayloadOS_altimeter
 #undef PayloadOS_IMU
 #undef PayloadOS_lightAPRS_Tx
@@ -57,6 +58,7 @@
 #undef PayloadOS_STEMnaut2
 #undef PayloadOS_STEMnaut3
 #undef PayloadOS_STEMnaut4
+*/
 
 /*Internal Data Structure Sizes--------------------------------
  * Macros:
