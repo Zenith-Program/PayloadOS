@@ -4,9 +4,9 @@
 namespace PayloadOS{
     namespace Peripherals{
         enum class PeripheralNames{
-            PayloadAltimeter, PayloadIMU, STEMnaut1, STEMnaut2, STEMnaut3, STEMnaut4, GPS, LightAPRSAltimeter, Transmitter, SENTINAL_COUNT
+            PayloadAltimeter, PayloadIMU, STEMnaut1, STEMnaut2, STEMnaut3, STEMnaut4, GPS, LightAPRSAltimeter, Transmitter, PowerCheck, SENTINAL_COUNT
         };
-        #define PayloadOS_NumberOfPeripherals static_cast<std::size_t>(PeripheralNames::SENTINAL_COUNT)
+        #define PayloadOS_NumberOfPeripherals static_cast<uint_t>(PeripheralNames::SENTINAL_COUNT)
 
         class AltimeterInterface{
             public:
@@ -71,6 +71,11 @@ namespace PayloadOS{
             public:
             virtual error_t transmitString(const char*) = 0;
             virtual bool available() = 0;
+        };
+
+        class PowerCheckInterface{
+            public:
+            virtual float_t getVoltage() = 0;
         };
     }
 }

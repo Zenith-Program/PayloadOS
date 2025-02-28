@@ -18,6 +18,8 @@ void loop() {
     serial->clear();
   }
   delay(1000);
-  Serial.println("Good");
+  float_t altitude = PayloadOS::Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getAltitude_m();
+  Serial.print("Altitude: ");
+  Serial.println(altitude);
 }
 

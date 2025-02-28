@@ -92,3 +92,8 @@ error_t TransmitterHardware::transmitString(const char*){
 bool TransmitterHardware::available(){
     return false;
 }
+
+//Power check--------------------------------------------------
+float_t PowerCheckHardware::getVoltage(){
+    return 5;
+}

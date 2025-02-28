@@ -39,6 +39,9 @@ namespace PayloadOS{
             //Transmitter Instance
             Hardware::TransmitterHardware transmitterHardware;
             Simulation::TransmitterBackdoor transmitterBackdoor;
+            //Power Check Instance
+            Hardware::PowerCheckHardware powerCheckHardware;
+            Simulation::PowerCheckBackdoor powerCheckBackdoor;
 
 
         public:
@@ -52,6 +55,7 @@ namespace PayloadOS{
             GPSInterface* getGPS();
             AltimeterInterface* getLightAPRSAltimeter();
             TransmitterInterface* getTransmitter();
+            PowerCheckInterface* getPowerCheck();
 
             //Hardware interface
             Hardware::AltimeterHardware* getPayloadAltimeterHardware();
@@ -63,6 +67,7 @@ namespace PayloadOS{
             Hardware::GPSHardware* getGPSHardware();
             Hardware::Altimeter2Hardware* getLightAPRSAltimeterHardware();
             Hardware::TransmitterHardware* getTransmitterHardware();
+            Hardware::PowerCheckHardware* getPowerCheckHardware();
 
             //Simulation interface
             Simulation::AltimeterBackdoor* getPayloadAltimeterBackdoor();
@@ -74,6 +79,7 @@ namespace PayloadOS{
             Simulation::GPSBackdoor* getGPSBackdoor();
             Simulation::Altimeter2Backdoor* getLightAPRSAltimeterBackdoor();
             Simulation::TransmitterBackdoor* getTransmitterBackdoor();
+            Simulation::PowerCheckBackdoor* getPowerCheckBackdoor();
 
             error_t chooseBackdoor(PeripheralNames);
             error_t chooseHardware(PeripheralNames);

@@ -52,71 +52,103 @@ TransmitterInterface* PeripheralSelector::getTransmitter(){
     return &transmitterHardware;
 }
 
+PowerCheckInterface* PeripheralSelector::getPowerCheck(){
+    if(selections[getIndex(PeripheralNames::PowerCheck)].isBackdoor) return &powerCheckBackdoor;
+    return &powerCheckHardware;
+}
+
 //Hardware getters---------------------------------------------
 Hardware::AltimeterHardware* PeripheralSelector::getPayloadAltimeterHardware(){
     if(selections[getIndex(PeripheralNames::PayloadAltimeter)].hasHardware) return &altimeterHardware;
     return nullptr;
 }
+
 Hardware::IMUHardware* PeripheralSelector::getPayloadIMUHardware(){
     if(selections[getIndex(PeripheralNames::PayloadIMU)].hasHardware) return &imuHardware;
     return nullptr;
 }
+
 Hardware::STEMnaut1Hardware* PeripheralSelector::getSTEMnaut1Hardware(){
     if(selections[getIndex(PeripheralNames::STEMnaut1)].hasHardware) return &stemnaut1Hardware;
     return nullptr;
 }
+
 Hardware::STEMnaut2Hardware* PeripheralSelector::getSTEMnaut2Hardware(){
     if(selections[getIndex(PeripheralNames::STEMnaut2)].hasHardware) return &stemnaut2Hardware;
     return nullptr;
 }
+
 Hardware::STEMnaut3Hardware* PeripheralSelector::getSTEMnaut3Hardware(){
     if(selections[getIndex(PeripheralNames::STEMnaut3)].hasHardware) return &stemnaut3Hardware;
     return nullptr;
 }
+
 Hardware::STEMnaut4Hardware* PeripheralSelector::getSTEMnaut4Hardware(){
     if(selections[getIndex(PeripheralNames::STEMnaut4)].hasHardware) return &stemnaut4Hardware;
     return nullptr;
 }
+
 Hardware::GPSHardware* PeripheralSelector::getGPSHardware(){
     if(selections[getIndex(PeripheralNames::GPS)].hasHardware) return &gpsHardware;
     return nullptr;
 }
+
 Hardware::Altimeter2Hardware* PeripheralSelector::getLightAPRSAltimeterHardware(){
     if(selections[getIndex(PeripheralNames::LightAPRSAltimeter)].hasHardware) return &altimeter2Hardware;
     return nullptr;
 }
+
 Hardware::TransmitterHardware* PeripheralSelector::getTransmitterHardware(){
     if(selections[getIndex(PeripheralNames::Transmitter)].hasHardware) return &transmitterHardware;
     return nullptr;
 }
 
+Hardware::PowerCheckHardware* PeripheralSelector::getPowerCheckHardware(){
+    if(selections[getIndex(PeripheralNames::PowerCheck)].hasHardware) return &powerCheckHardware;
+    return nullptr;
+}
+
+
+
 //Backdoor getters---------------------------------------------
 Simulation::AltimeterBackdoor* PeripheralSelector::getPayloadAltimeterBackdoor(){
     return &altimeterBackdoor;
 }
+
 Simulation::IMUBackdoor* PeripheralSelector::getPayloadIMUBackdoor(){
     return &imuBackdoor;
 }
+
 Simulation::STEMnaut1Backdoor* PeripheralSelector::getSTEMnaut1Backdoor(){
     return &stemnaut1Backdoor;
 }
+
 Simulation::STEMnaut2Backdoor* PeripheralSelector::getSTEMnaut2Backdoor(){
     return &stemnaut2Backdoor;
 }
+
 Simulation::STEMnaut3Backdoor* PeripheralSelector::getSTEMnaut3Backdoor(){
     return &stemnaut3Backdoor;
 }
+
 Simulation::STEMnaut4Backdoor* PeripheralSelector::getSTEMnaut4Backdoor(){
     return &stemnaut4Backdoor;
 }
+
 Simulation::GPSBackdoor* PeripheralSelector::getGPSBackdoor(){
     return &gpsBackdoor;
 }
+
 Simulation::Altimeter2Backdoor* PeripheralSelector::getLightAPRSAltimeterBackdoor(){
     return &altimeter2Backdoor;
 }
+
 Simulation::TransmitterBackdoor* PeripheralSelector::getTransmitterBackdoor(){
     return &transmitterBackdoor;
+}
+
+Simulation::PowerCheckBackdoor* PeripheralSelector::getPowerCheckBackdoor(){
+    return &powerCheckBackdoor;
 }
 
 //implementation Selection-------------------------------------
@@ -212,6 +244,13 @@ void PeripheralSelector::setHardwareBits(){
         selections[getIndex(PeripheralNames::STEMnaut4)] = {true, false};
     #else
         selections[getIndex(PeripheralNames::STEMnaut4)] = {false, true};
+    #endif
+
+    //Power Check
+    #ifdef PayloadOS_powerCheck
+        selections[getIndex(PeripheralNames::PowerCheck)] = {true, false};
+    #else
+        selections[getIndex(PeripheralNames::PowerCheck)] = {false, true};
     #endif
 
 }

@@ -62,5 +62,10 @@ namespace PayloadOS{
             Peripherals::LinearVector getAcceleration_m_s2() override;
             Peripherals::RotationVector getAngularVelocity_rad_s() override;
         };
+
+        class PowerCheckHardware : public Peripherals::PowerCheckInterface{
+        public:
+            float_t getVoltage() override;
+        };
     }
 }
