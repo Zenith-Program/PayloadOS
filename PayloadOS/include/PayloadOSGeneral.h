@@ -3,6 +3,7 @@
 #include "PayloadOS.cfg.h"
 
 //Macro checks-------------------------------------------------
+//types
 #ifndef PayloadOS_intType
 static_assert(false, "PayloadOS_intType must be defined in file PayloadOS.cfg.h");
 #endif
@@ -15,7 +16,7 @@ static_assert(false, "PayloadOS_uintType must be defined in file PayloadOS.cfg.h
 static_assert(false, "PayloadOS_floatType must be defined in file PayloadOS.cfg.h");
 #endif
 
-
+//structure sizes
 #ifndef PayloadOS_CommandListSize
 static_assert(false, "PayloadOS_CommandListSize must be defined in file PayloadOS.cfg.h");
 #else
@@ -51,6 +52,19 @@ static_assert(false, "PayloadOS_InternalComandBufferSize must be defined in file
 #else
 static_assert(PayloadOS_InternalCommandBufferSize>0, "The buffer size defined by PayloadOS_InternalCommandBufferSize must be positive");
 #endif
+
+#ifndef PayloadOS_LogFileNameSize
+static_assert(false, "PayloadOS_LogFileNameSize must be defined in file PayloadOS.cfg.h");
+#else
+static_assert(PayloadOS_LogFileNameSize>0, "The buffer size defined by PayloadOS_LogFileNameSize must be positive");
+#endif
+
+#ifndef PayloadOS_SimulationFileNameSize
+static_assert(false, "PayloadOS_SimulationFileNameSize must be defined in file PayloadOS.cfg.h");
+#else
+static_assert(PayloadOS_SimulationFileNameSize>0, "The buffer size defined by PayloadOS_SimulationFileNameSize must be positive");
+#endif
+
 
 
 //Typedefs-----------------------------------------------------

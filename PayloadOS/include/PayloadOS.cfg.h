@@ -67,6 +67,8 @@
  * PayloadOS_TokenBufferSize - specifies the number of tokens that can be interpreted at once by the console interpreter. This limits the number of arguments that commands can have.
  * PayloadOS_CommandBufferSize - specifies the size of the buffer that stores command names durring interpretation. This limits the size of commands.
  * PayloadOS_InternalCommandBufferSize - specifies the size of the buffer that internal OS commands use to copy string their arguments to. This limits the size of strings that can be passed to them.
+ * PayloadOS_LogFileNameSize - specifies the size of the buffer that stores the name of the log file
+ * PayloadOS_SimulationFileNameSize - specifies the size of the buffer that stores the name of the simulation data file
 */
 
 #define PayloadOS_CommandListSize 10
@@ -75,6 +77,8 @@
 #define PayloadOS_TokenBufferSize 16
 #define PayloadOS_CommandBufferSize 64
 #define PayloadOS_InternalCommandBufferSize 64
+#define PayloadOS_LogFileNameSize 64
+#define PayloadOS_SimulationFileNameSize 64
 
 /*Other Configurations-----------------------------------------
  * Macros:
