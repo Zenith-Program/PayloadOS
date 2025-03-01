@@ -29,7 +29,6 @@ void loop() {
     serial->clear();
   }
   delay(1000);
-  float_t altitude = PayloadOS::Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getAltitude_m();
   Serial.println(buffer);
   if(Serial.available()){
     if(Serial.parseInt() == 1) Peripherals::Log::get()->getLine(buffer, 64);

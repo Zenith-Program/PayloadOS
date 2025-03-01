@@ -14,7 +14,8 @@ namespace PayloadOS{
         public:
             Peripherals::EulerAngle getOrientation_eulerDeg() override;
             Peripherals::LinearVector getAcceleration_m_s2() override;
-            Peripherals::RotationVector getAngularVelocity_rad_s() override;
+            Peripherals::RotationVector getAngularVelocity_deg_s() override;
+            Peripherals::LinearVector getGravityVector() override;
         };
 
         class TransmitterHardware : public Peripherals::TransmitterInterface{
@@ -39,28 +40,32 @@ namespace PayloadOS{
         public:
             Peripherals::EulerAngle getOrientation_eulerDeg() override;
             Peripherals::LinearVector getAcceleration_m_s2() override;
-            Peripherals::RotationVector getAngularVelocity_rad_s() override;
+            Peripherals::RotationVector getAngularVelocity_deg_s() override;
+            Peripherals::LinearVector getGravityVector() override;
         };
 
         class STEMnaut2Hardware : public Peripherals::IMUInterface{
         public:
             Peripherals::EulerAngle getOrientation_eulerDeg() override;
             Peripherals::LinearVector getAcceleration_m_s2() override;
-            Peripherals::RotationVector getAngularVelocity_rad_s() override;
+            Peripherals::RotationVector getAngularVelocity_deg_s() override;
+            Peripherals::LinearVector getGravityVector() override;
         };
 
         class STEMnaut3Hardware : public Peripherals::IMUInterface{
         public:
             Peripherals::EulerAngle getOrientation_eulerDeg() override;
             Peripherals::LinearVector getAcceleration_m_s2() override;
-            Peripherals::RotationVector getAngularVelocity_rad_s() override;
+            Peripherals::RotationVector getAngularVelocity_deg_s() override;
+            Peripherals::LinearVector getGravityVector() override;
         };
 
         class STEMnaut4Hardware : public Peripherals::IMUInterface{
         public:
             Peripherals::EulerAngle getOrientation_eulerDeg() override;
             Peripherals::LinearVector getAcceleration_m_s2() override;
-            Peripherals::RotationVector getAngularVelocity_rad_s() override;
+            Peripherals::RotationVector getAngularVelocity_deg_s() override;
+            Peripherals::LinearVector getGravityVector() override;
         };
 
         class PowerCheckHardware : public Peripherals::PowerCheckInterface{

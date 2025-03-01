@@ -30,20 +30,30 @@ namespace PayloadOS{
         struct EulerAngle{
             float yaw, pitch, roll;
         };
+        struct Matrix3x3{
+            float r1c1, r1c2, r1c3,
+                r2c1, r2c2, r2c3, 
+                r3c1, r3c2, r3c3;
+        };
 
         class IMUInterface{
             public:
             virtual EulerAngle getOrientation_eulerDeg() = 0;
             virtual LinearVector getAcceleration_m_s2() = 0;
-            virtual RotationVector getAngularVelocity_rad_s() = 0;
+            virtual RotationVector getAngularVelocity_deg_s() = 0;
+            virtual LinearVector getGravityVector() = 0;
 
             EulerAngle getOrientation_eulerRad();
-            LinearVector getOrientation_unitVec();
+            Matrix3x3 getOrientation_mat();
             LinearVector getAcceleration_ft_s2();
-            RotationVector getAngularVelocity_deg_s();
-            float_t getAccelerationMagnitude();
-            float_t getHorizonAngle();
-            float_t getAngularVelocityMagnitude();
+            RotationVector getAngularVelocity_rad_s();
+            float_t getAccelerationMagnitude_m_s2();
+            float_t getAccelerationMagnitude_ft_s2();
+            LinearVector getDirection();
+            float_t getVerticalAngle_deg();
+            float_t getVerticalAngle_rad();
+            float_t getAngularVelocityMagnitude_deg_s();
+            float_t getAngularVelocityMagnitude_rad_s();
         };
 
         struct Coordinate{

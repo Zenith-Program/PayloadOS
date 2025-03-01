@@ -5,15 +5,14 @@ using namespace PayloadOS::Simulation;
 
 //Altimeter---------------------------------------------------
 float_t GeneralAltimeterBackdoor::getAltitude_m(){
-    return 0; //for now
+    return currentAltitude_m;
 }
 float_t GeneralAltimeterBackdoor::getPressure_mBar(){
-    return 0; //for now
+    return currentPressure_mBar;
 }
 float_t GeneralAltimeterBackdoor::getTemperature_K(){
-    return 0; // for now
+    return currentTemperature_K;
 }
-
 //IMU----------------------------------------------------------
 Peripherals::EulerAngle GeneralIMUBackdoor::getOrientation_eulerDeg(){
     return {0,0,0}; //for now
@@ -21,7 +20,10 @@ Peripherals::EulerAngle GeneralIMUBackdoor::getOrientation_eulerDeg(){
 Peripherals::LinearVector GeneralIMUBackdoor::getAcceleration_m_s2(){
     return {0,0,0}; //for now
 }
-Peripherals::RotationVector GeneralIMUBackdoor::getAngularVelocity_rad_s(){
+Peripherals::RotationVector GeneralIMUBackdoor::getAngularVelocity_deg_s(){
+    return {0,0,0}; //for now
+}
+Peripherals::LinearVector GeneralIMUBackdoor::getGravityVector(){
     return {0,0,0}; //for now
 }
 

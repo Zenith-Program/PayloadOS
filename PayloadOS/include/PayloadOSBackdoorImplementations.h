@@ -21,7 +21,8 @@ namespace PayloadOS{
         public:
             Peripherals::EulerAngle getOrientation_eulerDeg() override;
             Peripherals::LinearVector getAcceleration_m_s2() override;
-            Peripherals::RotationVector getAngularVelocity_rad_s() override;
+            Peripherals::RotationVector getAngularVelocity_deg_s() override;
+            Peripherals::LinearVector getGravityVector() override;
         };
 
         //Backdoors for each peripheral------------------------
