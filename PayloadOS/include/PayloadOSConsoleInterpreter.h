@@ -1,7 +1,7 @@
 #pragma once
 
 #include "PayloadOSToken.h"
-#include "PayloadOSState.h"
+#include "PayloadOSStateMachine.h"
 
 namespace PayloadOS{
     namespace Interpreter{

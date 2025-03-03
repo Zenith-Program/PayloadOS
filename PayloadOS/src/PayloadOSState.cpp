@@ -1,15 +1,18 @@
-#include "PayloadOSState.h"
+#include "PayloadOSStateMachine.h"
 
 using namespace PayloadOS;
 using namespace State;
 
 //operation------------------------------------
 void ProgramState::doProcess(){
+    if(paused) return;
     //check that the state has a process and execute it
     void (*process)() = states[getIndex(currentState)].loop;
     if(process != nullptr) process();
+
 }
 void ProgramState::nextState(){
+    if(paused) return;
     States next;
     if(fail == PayloadOS::ERROR){
         next = States::Fail;
@@ -40,12 +43,32 @@ void ProgramState::nextState(){
     }
 }
 
+//fail state-----------------------------------
+void ProgramState::initiateFailure(){
+    fail = PayloadOS::ERROR;
+}
+
+
+void ProgramState::recoverFailure(States state){
+    //default argument clears fail flag before end of cycle
+    if(state == States::SENTINAL_COUNT) fail = PayloadOS::GOOD;
+    else{
+        //recovers to a specific state
+        auto restart = states[getIndex(state)].init;
+        if(restart != nullptr){
+            restart();
+            currentState = state;
+            fail = PayloadOS::GOOD;
+        }
+    }
+}
+
 
 //interfacing----------------------------------
-States ProgramState::getCurrentState(){
+States ProgramState::getCurrentState() const{
     return States::Fail; //for now
 }
-const char* ProgramState::getCurrentStateName(){
+const char* ProgramState::getCurrentStateName() const{
     return states[getIndex(currentState)].name; // for now
 }
 //interface with the interpreter 
@@ -54,6 +77,30 @@ Interpreter::CommandList* ProgramState::getBaseCommands(){
 }
 Interpreter::CommandList* ProgramState::getCurrentCommands(){
     return states[getIndex(currentState)].commands; //for now
+}
+
+//clock----------------------------------------
+void ProgramState::reset(){
+    auto endRoutine = states[getIndex(currentState)].end;
+    if(endRoutine != nullptr) endRoutine();
+    currentState = State::States::Startup;
+    paused = false;
+    timer.begin(ClockISR, period);
+}
+
+void ProgramState::pause(){
+    timer.end();
+    paused = true;
+}
+
+void ProgramState::resume(){
+    paused = false;
+    timer.begin(ClockISR, period);
+}
+
+void ProgramState::ClockISR(){
+    ProgramState::get()->doProcess();
+    ProgramState::get()->nextState();
 }
 
 //singleton------------------------------------

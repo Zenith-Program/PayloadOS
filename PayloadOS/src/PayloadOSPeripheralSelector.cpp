@@ -57,6 +57,11 @@ PowerCheckInterface* PeripheralSelector::getPowerCheck(){
     return &powerCheckHardware;
 }
 
+ArmSwitchInterface* PeripheralSelector::getArmSwitch(){
+    if(selections[getIndex(PeripheralNames::ArmSwitch)].isBackdoor) return &armSwitchBackdoor;
+    return &armSwitchHardware;
+}
+
 //Hardware getters---------------------------------------------
 Hardware::AltimeterHardware* PeripheralSelector::getPayloadAltimeterHardware(){
     if(selections[getIndex(PeripheralNames::PayloadAltimeter)].hasHardware) return &altimeterHardware;
@@ -108,6 +113,11 @@ Hardware::PowerCheckHardware* PeripheralSelector::getPowerCheckHardware(){
     return nullptr;
 }
 
+Hardware::ArmSwitchHardware* PeripheralSelector::getArmSwitchHardware(){
+    if(selections[getIndex(PeripheralNames::ArmSwitch)].hasHardware) return &armSwitchHardware;
+    return nullptr;
+}
+
 
 
 //Backdoor getters---------------------------------------------
@@ -149,6 +159,10 @@ Simulation::TransmitterBackdoor* PeripheralSelector::getTransmitterBackdoor(){
 
 Simulation::PowerCheckBackdoor* PeripheralSelector::getPowerCheckBackdoor(){
     return &powerCheckBackdoor;
+}
+
+Simulation::ArmSwitchBackdoor* PeripheralSelector::getArmSwitchBackdoor(){
+    return &armSwitchBackdoor;
 }
 
 //implementation Selection-------------------------------------
@@ -251,6 +265,13 @@ void PeripheralSelector::setHardwareBits(){
         selections[getIndex(PeripheralNames::PowerCheck)] = {true, false};
     #else
         selections[getIndex(PeripheralNames::PowerCheck)] = {false, true};
+    #endif
+
+    //Arm Switch
+    #ifdef PayloadOS_armSwitch
+        selections[getIndex(PeripheralNames::ArmSwitch)] = {true, false};
+    #else
+        selections[getIndex(PeripheralNames::ArmSwitch)] = {false, true};
     #endif
 
 }

@@ -2,37 +2,30 @@
 #include "PayloadOSConsoleIO.h"
 #include "PayloadOSConsoleInterpreter.h"
 #include "PayloadOSPeripheralSelector.h"
-#include "PayloadOSSDLog.h"
 
+//#define SPIN_CHECK
+
+#define INPUT_DELAY 200
 using namespace PayloadOS;
-char buffer[64] = "original";
+
+
+
 
 void setup() {
   PayloadOS::SerialIO::get()->init();
-  if(Peripherals::Log::get()->initSD()){
-    Serial.println("SD Init Error");
-  }
-  else{
-    Serial.println("Init");
-  }
-  Peripherals::Log::get()->setDestination(Peripherals::LogDestinations::SDCard);
-  Peripherals::Log::get()->setFileName("TestLog.txt");
+  State::ProgramState::get()->reset();
 }
 
 void loop() {
-  PayloadOS::Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter();
-  PayloadOS::SerialIO* serial = PayloadOS::SerialIO::get();
-  PayloadOS::Interpreter::ConsoleInterpreter* interpreter = PayloadOS::Interpreter::ConsoleInterpreter::get();
-  serial->update();
-  if(serial->hasData()){
-    interpreter->readLine();
-    serial->clear();
+  SerialIO::get()->update();
+  if(SerialIO::get()->hasData()){
+    if(Interpreter::ConsoleInterpreter::get()->readLine() == PayloadOS::ERROR){
+      State::ProgramState::get()->initiateFailure();
+    } 
   }
-  delay(1000);
-  Serial.println(buffer);
-  if(Serial.available()){
-    if(Serial.parseInt() == 1) Peripherals::Log::get()->getLine(buffer, 64);
-  }
- 
+  delay(INPUT_DELAY);
+  #ifdef SPIN_CHECK
+  Serial.println("Spin");
+  #endif
 }
 

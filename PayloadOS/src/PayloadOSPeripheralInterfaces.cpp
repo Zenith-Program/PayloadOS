@@ -40,30 +40,6 @@ float_t AltimeterInterface::getPressure_psi(){
 }
 
 //IMU
-EulerAngle IMUInterface::getOrientation_eulerRad(){
-    EulerAngle deg = getOrientation_eulerDeg();
-    deg.pitch *= DEG_TO_RAD;
-    deg.roll *= DEG_TO_RAD;
-    deg.yaw *= DEG_TO_RAD;
-    return deg;
-}
-
-Matrix3x3 IMUInterface::getOrientation_mat(){
-    EulerAngle e = getOrientation_eulerRad();
-    float_t cYaw = std::cos(e.yaw);
-    float_t sYaw = std::cos(e.yaw);
-
-    float_t cRoll = std::cos(e.roll);
-    float_t sRoll = std::cos(e.roll);
-
-    float_t cPitch = std::cos(e.pitch);
-    float_t sPitch = std::cos(e.pitch);
-
-    return {cYaw*cPitch,    cYaw * sPitch * sRoll - sYaw * cRoll,   cYaw * sPitch * cRoll + sYaw * sRoll,
-        sYaw * cPitch,      sYaw * sPitch * sRoll + cYaw * cRoll,   sYaw * sPitch * cRoll - cYaw * sRoll,
-        -sPitch,            cPitch * sRoll,                         cPitch * cYaw 
-    };
-}
 
 LinearVector IMUInterface::getAcceleration_ft_s2(){
     LinearVector a = getAcceleration_m_s2();
@@ -92,20 +68,8 @@ float_t IMUInterface::getAccelerationMagnitude_ft_s2(){
 }
 
 LinearVector IMUInterface::getDirection(){
-    EulerAngle e = getOrientation_eulerRad();
-    float_t cYaw = std::cos(e.yaw);
-    float_t sYaw = std::cos(e.yaw);
-
-    float_t cRoll = std::cos(e.roll);
-    float_t sRoll = std::cos(e.roll);
-
-    float_t cPitch = std::cos(e.pitch);
-    float_t sPitch = std::cos(e.pitch);
-
-    return {cYaw * sPitch * cRoll + sYaw * sRoll, 
-        sYaw * sPitch * cRoll - cYaw * sRoll,
-        cPitch * cRoll
-    };
+    LinearVector g = getGravityVector();
+    return {-g.x, -g.y, g.z};
 }
 
 float_t IMUInterface::getVerticalAngle_deg(){

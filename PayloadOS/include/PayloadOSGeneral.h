@@ -65,6 +65,20 @@ static_assert(false, "PayloadOS_SimulationFileNameSize must be defined in file P
 static_assert(PayloadOS_SimulationFileNameSize>0, "The buffer size defined by PayloadOS_SimulationFileNameSize must be positive");
 #endif
 
+//other configurations
+#ifndef PayloadOS_ConsoleBaudRate
+static_assert(false, "PayloadOS_ConsoleBaudRate must be defined in file PayloadOS.cfg.h");
+#else
+static_assert(PayloadOS_ConsoleBaudRate>0, "The baud rate defined by PayloadOS_ConsoleBaudRate must be positive");
+#endif
+
+#ifndef PayloadOS_DefaultSamplePeriod
+static_assert(false, "PayloadOS_DefaultSamplePeriod must be defined in file PayloadOS.cfg.h");
+#else
+static_assert(PayloadOS_DefaultSamplePeriod>0, "The state machine & log sample rate defined by PayloadOS_DefaultSamplePeriod must be positive");
+#endif
+
+
 
 
 //Typedefs-----------------------------------------------------

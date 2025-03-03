@@ -42,6 +42,9 @@ namespace PayloadOS{
             //Power Check Instance
             Hardware::PowerCheckHardware powerCheckHardware;
             Simulation::PowerCheckBackdoor powerCheckBackdoor;
+            //Arm Switch Instance
+            Hardware::ArmSwitchHardware armSwitchHardware;
+            Simulation::ArmSwitchBackdoor armSwitchBackdoor;
 
 
         public:
@@ -56,6 +59,7 @@ namespace PayloadOS{
             AltimeterInterface* getLightAPRSAltimeter();
             TransmitterInterface* getTransmitter();
             PowerCheckInterface* getPowerCheck();
+            ArmSwitchInterface* getArmSwitch();
 
             //Hardware interface
             Hardware::AltimeterHardware* getPayloadAltimeterHardware();
@@ -68,6 +72,7 @@ namespace PayloadOS{
             Hardware::Altimeter2Hardware* getLightAPRSAltimeterHardware();
             Hardware::TransmitterHardware* getTransmitterHardware();
             Hardware::PowerCheckHardware* getPowerCheckHardware();
+            Hardware::ArmSwitchHardware* getArmSwitchHardware();
 
             //Simulation interface
             Simulation::AltimeterBackdoor* getPayloadAltimeterBackdoor();
@@ -80,6 +85,7 @@ namespace PayloadOS{
             Simulation::Altimeter2Backdoor* getLightAPRSAltimeterBackdoor();
             Simulation::TransmitterBackdoor* getTransmitterBackdoor();
             Simulation::PowerCheckBackdoor* getPowerCheckBackdoor();
+            Simulation::ArmSwitchBackdoor* getArmSwitchBackdoor();
 
             error_t chooseBackdoor(PeripheralNames);
             error_t chooseHardware(PeripheralNames);

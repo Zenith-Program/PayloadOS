@@ -30,6 +30,7 @@
  * PayloadOS_STEMnaut2
  * PayloadOS_STEMnaut3
  * PayloadOS_STEMnaut4
+ * PayloadOS_armSwitch
 */
 
 //defines--------------------------------------
@@ -44,6 +45,7 @@
 #define PayloadOS_STEMnaut2
 #define PayloadOS_STEMnaut3
 #define PayloadOS_STEMnaut4
+#define PayloadOS_armSwitch
 
 //Undefines------------------------------------
 
@@ -57,6 +59,7 @@
 #undef PayloadOS_STEMnaut2
 #undef PayloadOS_STEMnaut3
 #undef PayloadOS_STEMnaut4
+#undef PayloadOS_armSwitch
 
 
 /*Internal Data Structure Sizes--------------------------------
@@ -83,6 +86,8 @@
 /*Other Configurations-----------------------------------------
  * Macros:
  * PayloadOS_ConsoleBaudRate - baud rate of the console. Make sure that serial monitor or whatever console program you're usign matches this
+ * PayloadOS_DefaultSamplePeriod - period of the state machine. Logs occur at this frequency
 */
 
 #define PayloadOS_ConsoleBaudRate 115200
+#define PayloadOS_DefaultSamplePeriod 1000

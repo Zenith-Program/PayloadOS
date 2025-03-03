@@ -4,12 +4,19 @@
 namespace PayloadOS{
     namespace Peripherals{
         enum class PeripheralNames{
-            PayloadAltimeter, PayloadIMU, STEMnaut1, STEMnaut2, STEMnaut3, STEMnaut4, GPS, LightAPRSAltimeter, Transmitter, PowerCheck, SENTINAL_COUNT
+            PayloadAltimeter, PayloadIMU, STEMnaut1, STEMnaut2, STEMnaut3, STEMnaut4, GPS, LightAPRSAltimeter, Transmitter, PowerCheck, ArmSwitch, SENTINAL_COUNT
         };
         #define PayloadOS_NumberOfPeripherals static_cast<uint_t>(PeripheralNames::SENTINAL_COUNT)
 
-        class AltimeterInterface{
-            public:
+        class PeripheralInterface{
+        public:
+            virtual error_t init() = 0;
+            virtual error_t status() = 0;
+            virtual error_t deInit() = 0;
+        };
+
+        class AltimeterInterface : public PeripheralInterface{
+        public:
             virtual float_t getAltitude_m() = 0;
             virtual float_t getPressure_mBar() = 0;
             virtual float_t getTemperature_K() = 0;
@@ -36,15 +43,12 @@ namespace PayloadOS{
                 r3c1, r3c2, r3c3;
         };
 
-        class IMUInterface{
-            public:
-            virtual EulerAngle getOrientation_eulerDeg() = 0;
+        class IMUInterface : public PeripheralInterface{
+        public:
             virtual LinearVector getAcceleration_m_s2() = 0;
             virtual RotationVector getAngularVelocity_deg_s() = 0;
             virtual LinearVector getGravityVector() = 0;
 
-            EulerAngle getOrientation_eulerRad();
-            Matrix3x3 getOrientation_mat();
             LinearVector getAcceleration_ft_s2();
             RotationVector getAngularVelocity_rad_s();
             float_t getAccelerationMagnitude_m_s2();
@@ -67,8 +71,8 @@ namespace PayloadOS{
             int_t fixAge;
         };
 
-        class GPSInterface{
-            public:
+        class GPSInterface : public PeripheralInterface{
+        public:
             virtual GPSData getData() = 0;
 
             float getAltitude_ft();
@@ -77,15 +81,20 @@ namespace PayloadOS{
 
         };
 
-        class TransmitterInterface{
-            public:
+        class TransmitterInterface : public PeripheralInterface{
+        public:
             virtual error_t transmitString(const char*) = 0;
             virtual bool available() = 0;
         };
 
-        class PowerCheckInterface{
-            public:
+        class PowerCheckInterface : public PeripheralInterface{
+        public:
             virtual float_t getVoltage() = 0;
+        };
+
+        class ArmSwitchInterface : public PeripheralInterface{
+        public:
+            virtual bool isOn() = 0;
         };
     }
 }
