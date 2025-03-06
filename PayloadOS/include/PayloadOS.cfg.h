@@ -86,8 +86,8 @@
 /*Other Configurations-----------------------------------------
  * Macros:
  * PayloadOS_ConsoleBaudRate - baud rate of the console. Make sure that serial monitor or whatever console program you're usign matches this
- * PayloadOS_DefaultSamplePeriod - period of the state machine. Logs occur at this frequency
+ * PayloadOS_DefaultSamplePeriod - period of the state machine in us. Logs occur at this frequency
 */
 
 #define PayloadOS_ConsoleBaudRate 115200
-#define PayloadOS_DefaultSamplePeriod 1000
+#define PayloadOS_DefaultSamplePeriod 1000000

@@ -22,6 +22,7 @@ void loop() {
     if(Interpreter::ConsoleInterpreter::get()->readLine() == PayloadOS::ERROR){
       State::ProgramState::get()->initiateFailure();
     } 
+    SerialIO::get()->clear();
   }
   delay(INPUT_DELAY);
   #ifdef SPIN_CHECK

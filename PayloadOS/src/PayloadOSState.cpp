@@ -1,4 +1,5 @@
 #include "PayloadOSStateMachine.h"
+#include <Arduino.h>
 
 using namespace PayloadOS;
 using namespace State;
@@ -66,16 +67,14 @@ void ProgramState::recoverFailure(States state){
 
 //interfacing----------------------------------
 States ProgramState::getCurrentState() const{
-    return States::Fail; //for now
+    return currentState;
 }
+
 const char* ProgramState::getCurrentStateName() const{
     return states[getIndex(currentState)].name; // for now
 }
-//interface with the interpreter 
-Interpreter::CommandList* ProgramState::getBaseCommands(){
-    return nullptr; // for now
-}
-Interpreter::CommandList* ProgramState::getCurrentCommands(){
+
+const Interpreter::CommandList* ProgramState::getCurrentCommands(){
     return states[getIndex(currentState)].commands; //for now
 }
 
@@ -117,3 +116,50 @@ ProgramState* ProgramState::get(){
  uint8_t ProgramState::getIndex(States state){
     return static_cast<uint_t>(state);
  }
+
+ //commands----------------------------------------------------
+ const Interpreter::CommandList* ProgramState::getBaseCommands(){
+    static const Interpreter::CommandList base = {
+        {"echo", "", echo},
+        {"state", "", getState},
+        {"commands", "", commands},
+        {"pause", "", pause_C},
+        {"play", "", play},
+        {"reset", "", reset_C},
+        {"getClock", "", getClock},
+        {"setClock", "", setClock},
+        {"do", "", do_C}
+    };
+    return &base; // for now
+}
+
+void ProgramState::echo(const Interpreter::Token*){
+    Serial.println("echo");
+}
+void ProgramState::getState(const Interpreter::Token*){
+    Serial.println(ProgramState::get()->getCurrentStateName());
+}
+void ProgramState::commands(const Interpreter::Token*){
+
+}
+void ProgramState::pause_C(const Interpreter::Token*){
+    ProgramState::get()->pause();
+    Serial.println("paused");
+}
+void ProgramState::play(const Interpreter::Token*){
+    ProgramState::get()->resume();
+    Serial.println("playing");
+}
+void ProgramState::reset_C(const Interpreter::Token*){
+    Serial.println("reseting");
+    ProgramState::get()->reset();
+}
+void ProgramState::getClock(const Interpreter::Token*){
+
+}
+void ProgramState::setClock(const Interpreter::Token*){
+
+}
+void ProgramState::do_C(const Interpreter::Token*){
+
+}

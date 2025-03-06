@@ -229,8 +229,8 @@ namespace PayloadOS{
             States getCurrentState() const;
             const char* getCurrentStateName() const;
             //interface with the interpreter 
-            Interpreter::CommandList* getBaseCommands();
-            Interpreter::CommandList* getCurrentCommands();
+            const Interpreter::CommandList* getBaseCommands();
+            const Interpreter::CommandList* getCurrentCommands();
             //clock
             void reset();
             void pause();
@@ -268,6 +268,17 @@ namespace PayloadOS{
                 }};
             }
             //---------------------------------------------------------------------------------
+        //Command Implementations
+        public:
+            static void echo(const Interpreter::Token*);
+            static void getState(const Interpreter::Token*);
+            static void commands(const Interpreter::Token*);
+            static void pause_C(const Interpreter::Token*);
+            static void play(const Interpreter::Token*);
+            static void reset_C(const Interpreter::Token*);
+            static void getClock(const Interpreter::Token*);
+            static void setClock(const Interpreter::Token*);
+            static void do_C(const Interpreter::Token*);
         };
     }
 }
