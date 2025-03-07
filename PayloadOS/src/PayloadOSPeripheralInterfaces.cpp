@@ -32,7 +32,7 @@ float_t AltimeterInterface::getTemperature_F(){
 }
 
 float_t AltimeterInterface::getTemperature_C(){
-    return getTemperature_K() + KELVIN_TO_CELCIUS_BIAS;
+    return getTemperature_K() - KELVIN_TO_CELCIUS_BIAS;
 }
 
 float_t AltimeterInterface::getPressure_psi(){

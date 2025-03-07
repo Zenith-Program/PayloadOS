@@ -9,12 +9,15 @@ namespace PayloadOS{
 			int_t focus;
 			Token tokens[PayloadOS_TokenBufferSize];
 			char commandBuffer[PayloadOS_CommandBufferSize];
+			bool unit;
 		public:
 			//parsing interface 
 			error_t readLine();
 
 			//callbacks for internal commands
 			void printAvailableCommands() const;
+			bool getCurrentUnits() const;
+			void setUnits(bool);
 
 			//singleton implementation
 		private:

@@ -6,7 +6,7 @@
 using namespace PayloadOS;
 using namespace PayloadOS::Interpreter;
 
-ConsoleInterpreter::ConsoleInterpreter() : focus(-1) {}
+ConsoleInterpreter::ConsoleInterpreter() : focus(-1), unit(true) {}
 
 error_t ConsoleInterpreter::readLine() {
 	SerialIO* buffer = SerialIO::get();
@@ -104,6 +104,14 @@ void ConsoleInterpreter::printAvailableCommands() const {
 	const Interpreter::CommandList* generalList = State::ProgramState::get()->getBaseCommands();
 	SerialIO::get()->printf("--General--\n");
 	generalList->printCommands();
+}
+
+bool ConsoleInterpreter::getCurrentUnits() const{
+	return unit;
+}
+
+void ConsoleInterpreter::setUnits(bool u){
+	unit = u;
 }
 
 //helper functions-------------------------------------------------------------

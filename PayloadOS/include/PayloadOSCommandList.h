@@ -2,7 +2,9 @@
 
 #include "PayloadOSGeneral.h"
 #include "PayloadOSToken.h"
-#include <initializer_list>
+#include <array>
+
+#define CMD Interpreter::Command
 
 namespace PayloadOS{
     namespace Interpreter{
@@ -13,11 +15,10 @@ namespace PayloadOS{
         };
 
         class CommandList{
-            Command commands[PayloadOS_CommandListSize];
+            const Command* commands;
             int_t actualSize;
         public:
-            CommandList();
-		    CommandList(std::initializer_list<Command> list);
+            CommandList(const Command*, uint_t);
 		    const Command* getCommandWithName(char*) const;
 		    void printCommands() const;
         };

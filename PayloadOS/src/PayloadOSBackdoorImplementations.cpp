@@ -99,7 +99,7 @@ void GPSBackdoor::setData(Peripherals::GPSData newData){
 
 //Transmitter--------------------------------------------------
 error_t TransmitterBackdoor::transmitString(const char* message){
-    Serial.print("[Transmission]");
+    Serial.print("[Transmission] ");
     Serial.println(message);
     return PayloadOS::GOOD;
 }

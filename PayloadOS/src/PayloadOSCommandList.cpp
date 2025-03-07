@@ -6,11 +6,8 @@
 using namespace PayloadOS;
 using namespace Interpreter;
 
-CommandList::CommandList() {}
-CommandList::CommandList(std::initializer_list<Command> list) : actualSize(list.size()) {
-	if (actualSize >= PayloadOS_CommandListSize) actualSize = PayloadOS_CommandListSize;
-	std::copy(list.begin(), list.begin() + actualSize, commands);
-}
+//CommandList::CommandList() {}
+CommandList::CommandList(const Command* cmds, uint_t size) : commands(cmds), actualSize(size) {}
 
 const Command* CommandList::getCommandWithName(char* name) const {
 	int_t i;

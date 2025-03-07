@@ -74,7 +74,7 @@
  * PayloadOS_SimulationFileNameSize - specifies the size of the buffer that stores the name of the simulation data file
 */
 
-#define PayloadOS_CommandListSize 10
+#define PayloadOS_CommandListSize 16
 #define PayloadOS_ConsoleRxBufferSize 256
 #define PayloadOS_ConsoleTxBufferSize 256
 #define PayloadOS_TokenBufferSize 16

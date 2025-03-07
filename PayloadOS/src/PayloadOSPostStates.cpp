@@ -16,7 +16,11 @@ void Processing::end(){
 State::States Processing::next(){
     return States::Processing; //for now
 }
-Interpreter::CommandList Processing::commands = {};
+const Interpreter::CommandList* Processing::getCommands(){
+    static constexpr auto arr = std::array<Interpreter::Command, 0>{};
+    static const Interpreter::CommandList list(&arr.front(), arr.size());
+    return &list;
+}
 
 //Transmit State-----------------------------------------------
 void Transmit::init(){
@@ -31,7 +35,11 @@ void Transmit::end(){
 State::States Transmit::next(){
     return States::Transmit; //for now
 }
-Interpreter::CommandList Transmit::commands = {};
+const Interpreter::CommandList* Transmit::getCommands(){
+    static constexpr auto arr = std::array<Interpreter::Command, 0>{};
+    static const Interpreter::CommandList list(&arr.front(), arr.size());
+    return &list;
+}
 
 //RRS State----------------------------------------------------
 void RRS::init(){
@@ -46,4 +54,8 @@ void RRS::end(){
 State::States RRS::next(){
     return States::Transmit; //for now
 }
-Interpreter::CommandList RRS::commands = {};
+const Interpreter::CommandList* RRS::getCommands(){
+    static constexpr auto arr = std::array<Interpreter::Command, 0>{};
+    static const Interpreter::CommandList list(&arr.front(), arr.size());
+    return &list;
+}

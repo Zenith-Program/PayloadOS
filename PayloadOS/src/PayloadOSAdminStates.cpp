@@ -30,9 +30,13 @@ State::States Debug::next(){
 //helpers--------------------------------------
 
 //commands-------------------------------------
-Interpreter::CommandList Debug::commands = {
-    {"exit", "", exitDebug}
-};
+const Interpreter::CommandList* Debug::getCommands(){
+    static constexpr auto arr = std::array{
+        CMD{"exit", "", exitDebug}
+    };
+    static const Interpreter::CommandList list(&arr.front(), arr.size());
+    return &list;
+}
 
 void Debug::exitDebug(const Interpreter::Token*){
     exit = true;
@@ -63,11 +67,15 @@ State::States Standby::next(){
 //helpers--------------------------------------
 
 //commands-------------------------------------
-Interpreter::CommandList Standby::commands = {
-    {"debug", "", toDebug},
-    {"arm", "", softwareArm},
-    {"disarm", "", softwareDisarm}
-};
+const Interpreter::CommandList* Standby::getCommands(){
+    static constexpr auto arr = std::array{
+        CMD{"debug", "", toDebug},
+        CMD{"arm", "", softwareArm},
+        CMD{"disarm", "", softwareDisarm}
+    };
+    static const Interpreter::CommandList list(&arr.front(), arr.size());
+    return &list;
+}
 
 void Standby::toDebug(const Interpreter::Token*){
     debug = true;
@@ -114,7 +122,11 @@ error_t Startup::initAllPeripherals(){
 }
 
 //commands-------------------------------------
-Interpreter::CommandList Startup::commands = {};
+const Interpreter::CommandList* Startup::getCommands(){
+    static constexpr auto arr = std::array<Interpreter::Command, 0>{};
+    static const Interpreter::CommandList list(&arr.front(), arr.size());
+    return &list;
+}
 
 //Fail State-------------------------------------------------------------------
 
@@ -137,6 +149,10 @@ State::States Fail::next(){
 //helpers--------------------------------------
 
 //commands-------------------------------------
-Interpreter::CommandList Fail::commands = {};
+const Interpreter::CommandList* Fail::getCommands(){
+    static constexpr auto arr = std::array<Interpreter::Command, 0>{};
+    static const Interpreter::CommandList list(&arr.front(), arr.size());
+    return &list;
+}
 
 //-----------------------------------------------------------------------------
