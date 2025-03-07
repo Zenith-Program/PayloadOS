@@ -89,6 +89,8 @@ namespace PayloadOS{
 
             error_t chooseBackdoor(PeripheralNames);
             error_t chooseHardware(PeripheralNames);
+            error_t chooseAllHardware();
+            void chooseAllBackdoor();
             bool isBackdoor(PeripheralNames) const;
             error_t initAll();
             error_t init(PeripheralNames);
@@ -97,6 +99,7 @@ namespace PayloadOS{
             error_t getStatus(PeripheralNames) const;
             void changeHardwareAvailability(PeripheralNames, bool);
             bool getHardwareAvailibility(PeripheralNames) const;
+            void setAllHardwareAvalibility(bool);
 
             //interface functions
             static PeripheralNames getEnumFromName(const char*);

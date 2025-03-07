@@ -1,7 +1,12 @@
 #include "PayloadOSHardwareImplementations.h"
+#include <Wire.h>
 
 using namespace PayloadOS;
 using namespace PayloadOS::Hardware;
+
+#define AltimeterAdress 0x77
+#define LightAPRSAdress 0x38
+#define STEMnaut4Adress 0x4B
 
 //Altimeter1---------------------------------------------------
 float_t AltimeterHardware::getAltitude_m(){
@@ -17,14 +22,18 @@ float_t AltimeterHardware::getTemperature_K(){
 }
 
 error_t AltimeterHardware::init(){
+    Wire.begin();
     return PayloadOS::GOOD;
 }
 
 error_t AltimeterHardware::status(){
-    return PayloadOS::GOOD;
+    Wire.beginTransmission(AltimeterAdress);
+    if(Wire.endTransmission() == 0) return PayloadOS::GOOD;
+    return PayloadOS::ERROR;
 }
 
 error_t AltimeterHardware::deInit(){
+    Wire.end();
     return PayloadOS::GOOD;
 }
 
@@ -43,10 +52,16 @@ Peripherals::LinearVector IMUHardware::getGravityVector(){
 }
 
 error_t IMUHardware::init(){
-    return PayloadOS::GOOD;
+    Wire1.begin();
+    imu = Adafruit_BNO055(55, 0x28, &Wire1);
+    if(imu.begin()) return PayloadOS::GOOD;
+    return PayloadOS::ERROR;
 }
 
 error_t IMUHardware::status(){
+    unsigned char a, b, c;
+    imu.getSystemStatus(&a,&b,&c);
+    if(c != 0) return PayloadOS::ERROR;
     return PayloadOS::GOOD;
 }
 
@@ -148,11 +163,14 @@ Peripherals::LinearVector STEMnaut4Hardware::getGravityVector(){
 }
 
 error_t STEMnaut4Hardware::init(){
+    Wire1.begin();
     return PayloadOS::GOOD;
 }
 
 error_t STEMnaut4Hardware::status(){
-    return PayloadOS::GOOD;
+    Wire1.beginTransmission(STEMnaut4Adress);
+    if(Wire1.endTransmission() == 0) return PayloadOS::GOOD;
+    return PayloadOS::ERROR;
 }
 
 error_t STEMnaut4Hardware::deInit(){
@@ -228,27 +246,33 @@ float_t PowerCheckHardware::getVoltage(){
 }
 
 error_t PowerCheckHardware::init(){
+    Wire2.begin();
     return PayloadOS::GOOD;
 }
 
 error_t PowerCheckHardware::status(){
-    return PayloadOS::GOOD;
+    Wire2.beginTransmission(LightAPRSAdress);
+    if(Wire2.endTransmission() == 0) return PayloadOS::GOOD;
+    return PayloadOS::ERROR;
 }
 
 error_t PowerCheckHardware::deInit(){
+    Wire2.end();
     return PayloadOS::GOOD;
 }
 
 //arm switch---------------------------------------------------
 bool ArmSwitchHardware::isOn(){
-    return false;
+    return digitalRead(0) == HIGH;
 }
 error_t ArmSwitchHardware::init(){
+    pinMode(0, INPUT);
     return PayloadOS::GOOD;
 }
 error_t ArmSwitchHardware::status(){
     return PayloadOS::GOOD;
 }
 error_t ArmSwitchHardware::deInit(){
+    pinMode(0, INPUT_DISABLE);
     return PayloadOS::GOOD;
 }

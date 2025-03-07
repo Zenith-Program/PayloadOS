@@ -1,5 +1,6 @@
 #pragma once
 #include "PayloadOSPeripheralInterfaces.h"
+#include "Adafruit_BNO055.h"
 
 namespace PayloadOS{
     namespace Hardware{
@@ -14,6 +15,7 @@ namespace PayloadOS{
         };
 
         class IMUHardware : public Peripherals::IMUInterface{
+            Adafruit_BNO055 imu;
         public:
             Peripherals::LinearVector getAcceleration_m_s2() override;
             Peripherals::RotationVector getAngularVelocity_deg_s() override;

@@ -182,6 +182,18 @@ error_t PeripheralSelector::chooseHardware(PeripheralNames name){
     return PayloadOS::GOOD;
 }
 
+error_t PeripheralSelector::chooseAllHardware(){
+    error_t err = PayloadOS::GOOD;
+    for(uint_t index = 0; index<PayloadOS_NumberOfPeripherals; index++)
+        if(chooseHardware(static_cast<PeripheralNames>(index)) == PayloadOS::ERROR) err = PayloadOS::ERROR;
+    return err;
+}
+
+void PeripheralSelector::chooseAllBackdoor(){
+    for(uint_t index = 0; index<PayloadOS_NumberOfPeripherals; index++)
+        chooseBackdoor(static_cast<PeripheralNames>(index));
+}
+
 bool PeripheralSelector::isBackdoor(PeripheralNames name) const{
     int_t index = getIndex(name);
     if(index == -1) return true;
@@ -411,6 +423,10 @@ bool PeripheralSelector::getHardwareAvailibility(PeripheralNames name) const{
     if(index != -1)  return selections[index].hasHardware;
     return false;
 }
+void PeripheralSelector::setAllHardwareAvalibility(bool connected){
+    for(uint_t index = 0; index<PayloadOS_NumberOfPeripherals; index++)
+        changeHardwareAvailability(static_cast<PeripheralNames>(index), connected);
+}
 //singleton implementation-------------------------------------
 PeripheralSelector::PeripheralSelector(){
     setHardwareBits();
@@ -424,77 +440,77 @@ PeripheralSelector* PeripheralSelector::get(){
 //initialization from Configuration----------------------------
 void PeripheralSelector::setHardwareBits(){
     //Altimeter
-    #ifdef PayloadOS_altimeter
+    #ifndef PayloadOS_altimeter
         selections[getIndex(PeripheralNames::PayloadAltimeter)] = {true, false};
     #else
         selections[getIndex(PeripheralNames::PayloadAltimeter)] = {false, true};
     #endif
 
     //IMU
-    #ifdef PayloadOS_IMU
+    #ifndef PayloadOS_IMU
         selections[getIndex(PeripheralNames::PayloadIMU)] = {true, false};
     #else
         selections[getIndex(PeripheralNames::PayloadIMU)] = {false, true};
     #endif
 
     //Transmitter
-    #ifdef PayloadOS_lightAPRS_Tx
+    #ifndef PayloadOS_lightAPRS_Tx
         selections[getIndex(PeripheralNames::Transmitter)] = {true, false};
     #else
         selections[getIndex(PeripheralNames::Transmitter)] = {false, true};
     #endif
 
     //GPS
-    #ifdef PayloadOS_lightAPRS_GPS
+    #ifndef PayloadOS_lightAPRS_GPS
         selections[getIndex(PeripheralNames::GPS)] = {true, false};
     #else
         selections[getIndex(PeripheralNames::GPS)] = {false, true};
     #endif
 
     //Altimeter 2
-    #ifdef PayloadOS_lightAPRS_altimeter
+    #ifndef PayloadOS_lightAPRS_altimeter
         selections[getIndex(PeripheralNames::LightAPRSAltimeter)] = {true, false};
     #else
         selections[getIndex(PeripheralNames::LightAPRSAltimeter)] = {false, true};
     #endif
 
     //STEMnaut 1
-    #ifdef PayloadOS_STEMnaut1
+    #ifndef PayloadOS_STEMnaut1
         selections[getIndex(PeripheralNames::STEMnaut1)] = {true, false};
     #else
         selections[getIndex(PeripheralNames::STEMnaut1)] = {false, true};
     #endif
 
     //STEMnaut 2
-    #ifdef PayloadOS_STEMnaut2
+    #ifndef PayloadOS_STEMnaut2
         selections[getIndex(PeripheralNames::STEMnaut2)] = {true, false};
     #else
         selections[getIndex(PeripheralNames::STEMnaut2)] = {false, true};
     #endif
 
     //STEMnaut 3
-    #ifdef PayloadOS_STEMnaut3
+    #ifndef PayloadOS_STEMnaut3
         selections[getIndex(PeripheralNames::STEMnaut3)] = {true, false};
     #else
         selections[getIndex(PeripheralNames::STEMnaut3)] = {false, true};
     #endif
 
     //STEMnaut 4
-    #ifdef PayloadOS_STEMnaut4
+    #ifndef PayloadOS_STEMnaut4
         selections[getIndex(PeripheralNames::STEMnaut4)] = {true, false};
     #else
         selections[getIndex(PeripheralNames::STEMnaut4)] = {false, true};
     #endif
 
     //Power Check
-    #ifdef PayloadOS_powerCheck
+    #ifndef PayloadOS_powerCheck
         selections[getIndex(PeripheralNames::PowerCheck)] = {true, false};
     #else
         selections[getIndex(PeripheralNames::PowerCheck)] = {false, true};
     #endif
 
     //Arm Switch
-    #ifdef PayloadOS_armSwitch
+    #ifndef PayloadOS_armSwitch
         selections[getIndex(PeripheralNames::ArmSwitch)] = {true, false};
     #else
         selections[getIndex(PeripheralNames::ArmSwitch)] = {false, true};
