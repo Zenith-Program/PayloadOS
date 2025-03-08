@@ -8,10 +8,17 @@ namespace PayloadOS{
         };
         #define PayloadOS_NumberOfPeripherals static_cast<uint_t>(PeripheralNames::SENTINAL_COUNT)
 
+        struct PeripheralStatus{
+            bool init;
+            bool responsive;
+            bool ready;
+            bool launchReady;
+        };
+
         class PeripheralInterface{
         public:
             virtual error_t init() = 0;
-            virtual error_t status() = 0;
+            virtual PeripheralStatus status() = 0;
             virtual error_t deInit() = 0;
         };
 

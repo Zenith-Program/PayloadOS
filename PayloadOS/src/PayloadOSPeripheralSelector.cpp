@@ -369,7 +369,7 @@ error_t PeripheralSelector::deInit(PeripheralNames name){
     }
 }
 
-error_t PeripheralSelector::getStatus(PeripheralNames name) const{
+PeripheralStatus PeripheralSelector::getStatus(PeripheralNames name) const{
     switch(name){
         case PeripheralNames::ArmSwitch:
         return PeripheralSelector::get()->getArmSwitch()->status();
@@ -405,7 +405,7 @@ error_t PeripheralSelector::getStatus(PeripheralNames name) const{
         return PeripheralSelector::get()->getPowerCheck()->status();
         break;
     default:
-        return PayloadOS::ERROR;
+        return {0};
     }
 }
 

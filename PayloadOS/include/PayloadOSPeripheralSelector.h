@@ -96,7 +96,7 @@ namespace PayloadOS{
             error_t init(PeripheralNames);
             error_t deInitAll();
             error_t deInit(PeripheralNames);
-            error_t getStatus(PeripheralNames) const;
+            PeripheralStatus getStatus(PeripheralNames) const;
             void changeHardwareAvailability(PeripheralNames, bool);
             bool getHardwareAvailibility(PeripheralNames) const;
             void setAllHardwareAvalibility(bool);

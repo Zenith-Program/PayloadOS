@@ -287,6 +287,8 @@ namespace PayloadOS{
             static void units(const Interpreter::Token*);
             static void mode(const Interpreter::Token*);
             static void status(const Interpreter::Token*);
+            static void report(const Interpreter::Token*);
+            static void init_C(const Interpreter::Token*);
             static void read(const Interpreter::Token*);
             static void hardware_C(const Interpreter::Token*);
             static void transmitRF(const Interpreter::Token*);

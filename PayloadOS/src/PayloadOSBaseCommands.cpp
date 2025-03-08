@@ -21,7 +21,9 @@ const Interpreter::CommandList* ProgramState::getBaseCommands(){
         CMD{"setClock", "uw", setClock},
         CMD{"do", "w", do_C},
         CMD{"mode", "ww", mode},
-        CMD{"status", "ww", status},
+        CMD{"init", "ww", init_C},
+        CMD{"status", "w", status},
+        CMD{"report", "w", report},
         CMD{"read", "ww", read},
         CMD{"hardware", "ww", hardware_C},
         CMD{"transmitRF", "s", transmitRF},
@@ -200,7 +202,7 @@ void ProgramState::mode(const Interpreter::Token* args){
         } 
 }
 
-void ProgramState::status(const Interpreter::Token* args){
+void ProgramState::init_C(const Interpreter::Token* args){
     char peripheralName[32];
     char version[8];
     args[0].copyStringData(peripheralName, 32);
@@ -218,10 +220,10 @@ void ProgramState::status(const Interpreter::Token* args){
             return;
         }
     }
-    if(std::strcmp(version, "init") == 0){
+    if(std::strcmp(version, "do") == 0){
         if(all){
             if(Peripherals::PeripheralSelector::get()->initAll() == PayloadOS::GOOD) return;
-            Serial.print("Failed to initialize at least one peripheral");
+            Serial.println("Failed to initialize at least one peripheral");
             return;
         }
         if(Peripherals::PeripheralSelector::get()->init(peripheral) == PayloadOS::GOOD) return;
@@ -229,10 +231,10 @@ void ProgramState::status(const Interpreter::Token* args){
         Serial.println(peripheralName);
         return;
     }
-    if(std::strcmp(version, "deInit") == 0){
+    if(std::strcmp(version, "undo") == 0){
         if(all){
             if(Peripherals::PeripheralSelector::get()->deInitAll() == PayloadOS::GOOD) return;
-            Serial.print("Failed to de-initialize at least one peripheral");
+            Serial.println("Failed to de-initialize at least one peripheral");
             return;
         }
         if(Peripherals::PeripheralSelector::get()->deInit(peripheral) == PayloadOS::GOOD) return;
@@ -242,21 +244,21 @@ void ProgramState::status(const Interpreter::Token* args){
     }
     if(std::strcmp(version, "get") == 0){
         if(all){
-            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::PayloadAltimeter), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::PayloadAltimeter) == PayloadOS::GOOD)? "ready" : "not ready");
-            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::LightAPRSAltimeter), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::LightAPRSAltimeter) == PayloadOS::GOOD)? "ready" : "not ready");
-            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::PayloadIMU), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::PayloadIMU) == PayloadOS::GOOD)? "ready" : "not ready");
-            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::STEMnaut1), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut1) == PayloadOS::GOOD)? "ready" : "not ready");
-            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::STEMnaut2), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut2) == PayloadOS::GOOD)? "ready" : "not ready");
-            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::STEMnaut3), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut3) == PayloadOS::GOOD)? "ready" : "not ready");
-            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::STEMnaut4), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut4) == PayloadOS::GOOD)? "ready" : "not ready");
-            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::GPS), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::GPS) == PayloadOS::GOOD)? "ready" : "not ready");
-            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::Transmitter), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::Transmitter) == PayloadOS::GOOD)? "ready" : "not ready");
-            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::PowerCheck), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::PowerCheck) == PayloadOS::GOOD)? "ready" : "not ready");
-            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::ArmSwitch), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::ArmSwitch) == PayloadOS::GOOD)? "ready" : "not ready");
+            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::PayloadAltimeter), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::PayloadAltimeter).init)? "initialized" : "not initialized");
+            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::LightAPRSAltimeter), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::LightAPRSAltimeter).init)? "initialized" : "not initialized");
+            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::PayloadIMU), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::PayloadIMU).init)? "initialized" : "not initialized");
+            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::STEMnaut1), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut1).init)? "initialized" : "not initialized");
+            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::STEMnaut2), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut2).init)? "initialized" : "not initialized");
+            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::STEMnaut3), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut3).init)? "initialized" : "not initialized");
+            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::STEMnaut4), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut4).init)? "initialized" : "not initialized");
+            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::GPS), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::GPS).init)? "initialized" : "not initialized");
+            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::Transmitter), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::Transmitter).init)? "initialized" : "not initialized");
+            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::PowerCheck), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::PowerCheck).init)? "initialized" : "not initialized");
+            Serial.printf("%s: %s\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::ArmSwitch), (Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::ArmSwitch).init)? "initialized" : "not initialized");
             return;
         }
         Serial.print(peripheralName);
-        if(Peripherals::PeripheralSelector::get()->getStatus(peripheral) == PayloadOS::GOOD) Serial.println(" is ready");
+        if(Peripherals::PeripheralSelector::get()->getStatus(peripheral).init) Serial.println(" is ready");
         else Serial.println(" is not ready");
         return;
     }
@@ -545,6 +547,54 @@ void ProgramState::units(const Interpreter::Token* args){
     Serial.print("'");
     Serial.print(type);
     Serial.println("' is not a valid argument. Choose 'freedom', 'metric' or 'get'");
+}
+
+void ProgramState::status(const Interpreter::Token* args){
+    char peripheralName[32];
+    args[0].copyStringData(peripheralName, 32);
+    bool all = false;
+    Peripherals::PeripheralNames peripheral = Peripherals::PeripheralSelector::getEnumFromName(peripheralName);
+    if(peripheral == Peripherals::PeripheralNames::SENTINAL_COUNT){
+        if(std::strcmp(peripheralName, "all") == 0){
+            all = true;
+        }
+        else{
+            Serial.print("'");
+            Serial.print(peripheralName);
+            Serial.println("' is not a valid peripheral name");
+            return;
+        }
+    }
+    if(all){
+        Serial.printf("%s - Initialized: %d, Responsive: %d, Ready: %d, Go: %d\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::PayloadAltimeter), 
+            Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::PayloadAltimeter).init, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::PayloadAltimeter).responsive, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::PayloadAltimeter).ready, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::PayloadAltimeter).launchReady);
+        Serial.printf("%s - Initialized: %d, Responsive: %d, Ready: %d, Go: %d\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::LightAPRSAltimeter),
+            Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::LightAPRSAltimeter).init, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::LightAPRSAltimeter).responsive, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::LightAPRSAltimeter).ready, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::LightAPRSAltimeter).launchReady);
+        Serial.printf("%s - Initialized: %d, Responsive: %d, Ready: %d, Go: %d\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::PayloadIMU),
+            Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::PayloadIMU).init, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::PayloadIMU).responsive, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::PayloadIMU).ready, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::PayloadIMU).launchReady);
+        Serial.printf("%s - Initialized: %d, Responsive: %d, Ready: %d, Go: %d\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::STEMnaut1), 
+            Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut1).init, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut1).responsive, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut1).ready, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut1).launchReady);
+        Serial.printf("%s - Initialized: %d, Responsive: %d, Ready: %d, Go: %d\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::STEMnaut2),
+            Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut2).init, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut2).responsive, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut2).ready, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut2).launchReady);
+        Serial.printf("%s - Initialized: %d, Responsive: %d, Ready: %d, Go: %d\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::STEMnaut3),
+            Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut3).init, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut3).responsive, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut3).ready, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut3).launchReady);
+        Serial.printf("%s - Initialized: %d, Responsive: %d, Ready: %d, Go: %d\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::STEMnaut4),
+            Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut4).init, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut4).responsive, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut4).ready, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::STEMnaut4).launchReady);
+        Serial.printf("%s - Initialized: %d, Responsive: %d, Ready: %d, Go: %d\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::GPS), 
+            Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::GPS).init, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::GPS).responsive, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::GPS).ready, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::GPS).launchReady);
+        Serial.printf("%s - Initialized: %d, Responsive: %d, Ready: %d, Go: %d\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::Transmitter), 
+            Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::Transmitter).init, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::Transmitter).responsive, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::Transmitter).ready, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::Transmitter).launchReady);
+        Serial.printf("%s - Initialized: %d, Responsive: %d, Ready: %d, Go: %d\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::PowerCheck), 
+            Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::PowerCheck).init, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::PowerCheck).responsive, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::PowerCheck).ready, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::PowerCheck).launchReady);
+        Serial.printf("%s - Initialized: %d, Responsive: %d, Ready: %d, Go: %d\n", Peripherals::PeripheralSelector::getNameFromEnum(Peripherals::PeripheralNames::ArmSwitch), 
+            Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::ArmSwitch).init, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::ArmSwitch).responsive, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::ArmSwitch).ready, Peripherals::PeripheralSelector::get()->getStatus(Peripherals::PeripheralNames::ArmSwitch).launchReady);
+        return;
+    }
+    Serial.printf("%s - Initialized: %d, Responsive: %d, Ready: %d, Go: %d\n", Peripherals::PeripheralSelector::getNameFromEnum(peripheral), 
+            Peripherals::PeripheralSelector::get()->getStatus(peripheral).init, Peripherals::PeripheralSelector::get()->getStatus(peripheral).responsive, Peripherals::PeripheralSelector::get()->getStatus(peripheral).ready, Peripherals::PeripheralSelector::get()->getStatus(peripheral).launchReady);
+}
+void ProgramState::report(const Interpreter::Token* args){
+
 }
 
 
