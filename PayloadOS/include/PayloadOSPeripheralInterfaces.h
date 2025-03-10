@@ -20,6 +20,7 @@ namespace PayloadOS{
             virtual error_t init() = 0;
             virtual PeripheralStatus status() = 0;
             virtual error_t deInit() = 0;
+            virtual void printReport() = 0;
         };
 
         class AltimeterInterface : public PeripheralInterface{
@@ -41,14 +42,6 @@ namespace PayloadOS{
         struct RotationVector{
             float x_rot, y_rot, z_rot;
         };
-        struct EulerAngle{
-            float yaw, pitch, roll;
-        };
-        struct Matrix3x3{
-            float r1c1, r1c2, r1c3,
-                r2c1, r2c2, r2c3, 
-                r3c1, r3c2, r3c3;
-        };
 
         class IMUInterface : public PeripheralInterface{
         public:
@@ -65,6 +58,15 @@ namespace PayloadOS{
             float_t getVerticalAngle_rad();
             float_t getAngularVelocityMagnitude_deg_s();
             float_t getAngularVelocityMagnitude_rad_s();
+
+            static Peripherals::LinearVector norm(Peripherals::LinearVector);
+            static float_t magnitude(Peripherals::LinearVector);
+            static Peripherals::RotationVector norm(Peripherals::RotationVector);
+            static float_t magnitude(Peripherals::RotationVector);
+
+
+            static void printLinear(LinearVector);
+            static void printRotatation(Peripherals::RotationVector);
         };
 
         struct Coordinate{
@@ -86,6 +88,9 @@ namespace PayloadOS{
             float getAltitude_m();
             Coordinate getPosition();
 
+            //utilities
+            static void printGPSData(const GPSData&);
+            static void printGPSCoordinate(Coordinate);
         };
 
         class TransmitterInterface : public PeripheralInterface{

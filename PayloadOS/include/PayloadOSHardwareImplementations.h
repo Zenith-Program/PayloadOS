@@ -1,6 +1,7 @@
 #pragma once
 #include "PayloadOSPeripheralInterfaces.h"
 #include "Adafruit_BNO055.h"
+#include "SparkFun_BNO080_Arduino_Library.h"
 
 namespace PayloadOS{
     namespace Hardware{
@@ -14,6 +15,7 @@ namespace PayloadOS{
             error_t init() override;
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
+            void printReport() override;
         };
 
         class IMUHardware : public Peripherals::IMUInterface{
@@ -27,6 +29,13 @@ namespace PayloadOS{
             error_t init() override;
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
+            void printReport() override;
+
+            
+        private:
+            error_t updateInitStatus(int_t = -1);
+            static const char* getStatusMeaning(uint8_t);
+            static const char* getErrorMeaning(uint8_t);
         };
 
         class TransmitterHardware : public Peripherals::TransmitterInterface{
@@ -36,6 +45,7 @@ namespace PayloadOS{
             error_t init() override;
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
+            void printReport() override;
         };
 
         class GPSHardware : public Peripherals::GPSInterface{
@@ -44,6 +54,7 @@ namespace PayloadOS{
             error_t init() override;
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
+            void printReport() override;
         };
 
         class Altimeter2Hardware : public Peripherals::AltimeterInterface{
@@ -54,6 +65,7 @@ namespace PayloadOS{
             error_t init() override;
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
+            void printReport() override;
         };
 
         class STEMnaut1Hardware : public Peripherals::IMUInterface{
@@ -64,6 +76,7 @@ namespace PayloadOS{
             error_t init() override;
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
+            void printReport() override;
         };
 
         class STEMnaut2Hardware : public Peripherals::IMUInterface{
@@ -74,6 +87,7 @@ namespace PayloadOS{
             error_t init() override;
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
+            void printReport() override;
         };
 
         class STEMnaut3Hardware : public Peripherals::IMUInterface{
@@ -84,10 +98,12 @@ namespace PayloadOS{
             error_t init() override;
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
+            void printReport() override;
         };
 
         class STEMnaut4Hardware : public Peripherals::IMUInterface{
             bool init_m;
+            BNO080 imu;
         public:
             STEMnaut4Hardware();
             Peripherals::LinearVector getAcceleration_m_s2() override;
@@ -95,7 +111,8 @@ namespace PayloadOS{
             Peripherals::LinearVector getGravityVector() override;
             error_t init() override;
             Peripherals::PeripheralStatus status() override;
-            error_t deInit()override;
+            error_t deInit() override;
+            void printReport() override;
         };
 
         class PowerCheckHardware : public Peripherals::PowerCheckInterface{
@@ -106,6 +123,7 @@ namespace PayloadOS{
             error_t init() override;
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
+            void printReport() override;
         };
 
         class ArmSwitchHardware : public Peripherals::ArmSwitchInterface{
@@ -115,7 +133,8 @@ namespace PayloadOS{
             bool isOn() override;
             error_t init() override;
             Peripherals::PeripheralStatus status() override;
-            error_t deInit()override;
+            error_t deInit() override;
+            void printReport() override;
         };
     }
 }

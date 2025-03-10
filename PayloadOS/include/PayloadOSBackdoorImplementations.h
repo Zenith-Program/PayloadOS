@@ -16,7 +16,8 @@ namespace PayloadOS{
             float_t getTemperature_K() override;
             error_t init() override;
             Peripherals::PeripheralStatus status() override;
-            error_t deInit()override;
+            error_t deInit() override;
+            void printReport() override;
             //backdoor interface
             void setCurrentAltitude_m(float_t);
             void setCurrrentPressure_mBar(float_t);
@@ -36,6 +37,7 @@ namespace PayloadOS{
             error_t init() override;
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
+            void printReport() override;
             //backdoor interface
             void setCurrentAcceleration_m_s2(Peripherals::LinearVector);
             void setCurrentAngularVelocity_deg_s(Peripherals::RotationVector);
@@ -61,6 +63,7 @@ namespace PayloadOS{
             error_t init() override;
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
+            void printReport() override;
         };
 
         class GPSBackdoor : public Peripherals::GPSInterface{
@@ -72,6 +75,7 @@ namespace PayloadOS{
             error_t init() override;
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
+            void printReport() override;
             //backdoor interface
             void setData(Peripherals::GPSData);
         };
@@ -85,6 +89,7 @@ namespace PayloadOS{
             error_t init() override;
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
+            void printReport() override;
             //backdoor interface
             void setPower(float_t);
         };
@@ -98,6 +103,7 @@ namespace PayloadOS{
             error_t init() override;
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
+            void printReport() override;
             //backdoor interface
             void setState(bool);
         };

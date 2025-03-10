@@ -48,6 +48,11 @@ namespace PayloadOS{
 
 
         public:
+            //generalSelection
+            PeripheralInterface* getPeripheral(PeripheralNames);
+            PeripheralInterface* getPeripheralHardware(PeripheralNames);
+            PeripheralInterface* getPeripheralBackdoor(PeripheralNames);
+
             //selection interface
             AltimeterInterface* getPayloadAltimeter();
             IMUInterface* getPayloadIMU();
@@ -100,6 +105,7 @@ namespace PayloadOS{
             void changeHardwareAvailability(PeripheralNames, bool);
             bool getHardwareAvailibility(PeripheralNames) const;
             void setAllHardwareAvalibility(bool);
+            void printAllReports();
 
             //interface functions
             static PeripheralNames getEnumFromName(const char*);

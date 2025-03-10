@@ -414,13 +414,7 @@ void ProgramState::read(const Interpreter::Token* args){
         }
         if(std::strcmp(parameter, "location") == 0){
             Peripherals::Coordinate c = Peripherals::PeripheralSelector::get()->getGPS()->getPosition();
-            Serial.print(std::abs(c.x));
-            if(c.x < 0) Serial.print("S");
-            else Serial.print("N");
-            Serial.print(", ");
-            Serial.print(c.y);
-            if(c.x < 0) Serial.println("W");
-            else Serial.println("E");
+            Peripherals::GPSInterface::printGPSCoordinate(c);
             nameHit = true;
         }
     }
@@ -594,6 +588,27 @@ void ProgramState::status(const Interpreter::Token* args){
             Peripherals::PeripheralSelector::get()->getStatus(peripheral).init, Peripherals::PeripheralSelector::get()->getStatus(peripheral).responsive, Peripherals::PeripheralSelector::get()->getStatus(peripheral).ready, Peripherals::PeripheralSelector::get()->getStatus(peripheral).launchReady);
 }
 void ProgramState::report(const Interpreter::Token* args){
+    char peripheralName[32];
+    args[0].copyStringData(peripheralName, 32);
+    bool all = false;
+    Peripherals::PeripheralNames peripheral = Peripherals::PeripheralSelector::getEnumFromName(peripheralName);
+    if(peripheral == Peripherals::PeripheralNames::SENTINAL_COUNT){
+        if(std::strcmp(peripheralName, "all") == 0){
+            all = true;
+        }
+        else{
+            Serial.print("'");
+            Serial.print(peripheralName);
+            Serial.println("' is not a valid peripheral name");
+            return;
+        }
+    }
+    if(all){
+        Peripherals::PeripheralSelector::get()->printAllReports();
+    }
+    else{
+        Peripherals::PeripheralSelector::get()->getPeripheral(peripheral)->printReport();
+    }
 
 }
 

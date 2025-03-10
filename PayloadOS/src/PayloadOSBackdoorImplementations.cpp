@@ -1,11 +1,16 @@
 #include "PayloadOSBackdoorImplementations.h"
+#include "PayloadOSConsoleInterpreter.h"
 #include <Arduino.h>
 
 using namespace PayloadOS;
 using namespace PayloadOS::Simulation;
 
+#define FalseStatus {0,0,0,0}
+#define EmptyVector {0,0,0}
+#define EmptyGPS {{0,0}, 0,0,0}
+
 //Altimeter---------------------------------------------------
-GeneralAltimeterBackdoor::GeneralAltimeterBackdoor() : currentAltitude_m(0), currentPressure_mBar(0), currentTemperature_K(0), init_m(false){}
+GeneralAltimeterBackdoor::GeneralAltimeterBackdoor() : init_m(false), currentAltitude_m(0), currentPressure_mBar(0), currentTemperature_K(0){}
 
 float_t GeneralAltimeterBackdoor::getAltitude_m(){
     if(!init_m) return 0;
@@ -34,6 +39,14 @@ error_t GeneralAltimeterBackdoor::deInit(){
     return PayloadOS::GOOD;
 }
 
+void GeneralAltimeterBackdoor::printReport(){
+    Serial.println("Version: backdoor");
+    Serial.print("Initialized: ");
+    Serial.println((init_m)? "yes" : "no");
+    bool units = Interpreter::ConsoleInterpreter::get()->getCurrentUnits();
+    Serial.printf("Altitude: %d\nTemperature: %d\n Pressure: %d\n", (units)? getAltitude_ft() : getAltitude_m(), (units)? getTemperature_F() : getTemperature_C(), (units)? getPressure_psi() : getPressure_mBar());
+}
+
 //backdoor interface
 void GeneralAltimeterBackdoor::setCurrentAltitude_m(float_t newAltitude){
     currentAltitude_m = newAltitude;
@@ -47,20 +60,21 @@ void GeneralAltimeterBackdoor::setCurrentTemperature_K(float_t newTemp){
     currentTemperature_K = newTemp;
 }
 
+
 //IMU----------------------------------------------------------
-GeneralIMUBackdoor::GeneralIMUBackdoor() : currentAcceleration_m_s2({0}), currentAngularVelocity_deg_s({0}), gravity({0}), init_m(false) {}
+GeneralIMUBackdoor::GeneralIMUBackdoor() : init_m(false), currentAcceleration_m_s2(EmptyVector), currentAngularVelocity_deg_s(EmptyVector), gravity(EmptyVector) {}
 Peripherals::LinearVector GeneralIMUBackdoor::getAcceleration_m_s2(){
-    if(!init_m) return {0};
+    if(!init_m) return EmptyVector;
     return currentAcceleration_m_s2;
 }
 
 Peripherals::RotationVector GeneralIMUBackdoor::getAngularVelocity_deg_s(){
-    if(!init_m) return {0};
+    if(!init_m) return EmptyVector;
     return currentAngularVelocity_deg_s;
 }
 
 Peripherals::LinearVector GeneralIMUBackdoor::getGravityVector(){
-    if(!init_m) return {0};
+    if(!init_m) return EmptyVector;
     return gravity;
 }
 
@@ -78,6 +92,33 @@ error_t GeneralIMUBackdoor::deInit(){
     return PayloadOS::GOOD;
 }
 
+void GeneralIMUBackdoor::printReport(){
+    Serial.println("Version: backdoor");
+    Serial.print("Initialized: ");
+    Serial.println((init_m)? "yes" : "no");
+    Serial.print("Acceleration: ");
+    if(Interpreter::ConsoleInterpreter::get()->getCurrentUnits()){
+        printLinear(getAcceleration_ft_s2());
+        Serial.println("ft/s^2");
+    }
+    else{
+        printLinear(getAcceleration_m_s2());
+        Serial.println("m/s^2");
+    }
+    Serial.print("Angular Velocity: ");
+    if(Interpreter::ConsoleInterpreter::get()->getCurrentUnits()){
+        printRotatation(getAngularVelocity_deg_s());
+        Serial.println("deg/s");
+    }
+    else{
+        printRotatation(getAngularVelocity_rad_s());
+        Serial.println("rad/s");
+    }
+    Serial.print("Direction: ");
+    printLinear(getDirection());
+    Serial.println();
+}
+
 //backdoor interface
 void GeneralIMUBackdoor::setCurrentAcceleration_m_s2(Peripherals::LinearVector newAcceleration){
     currentAcceleration_m_s2 = newAcceleration;
@@ -89,10 +130,10 @@ void GeneralIMUBackdoor::setGravity(Peripherals::LinearVector newGravity){
     gravity = newGravity;
 }
 //GPS----------------------------------------------------------
-GPSBackdoor::GPSBackdoor() : init_m (false), data({0}){}
+GPSBackdoor::GPSBackdoor() : init_m (false), data(EmptyGPS){}
 
 Peripherals::GPSData GPSBackdoor::getData(){
-    if(!init_m) return {0};
+    if(!init_m) return EmptyGPS;
     return data;
 }
 
@@ -108,6 +149,13 @@ Peripherals::PeripheralStatus GPSBackdoor::status(){
 error_t GPSBackdoor::deInit(){
     init_m = false;
     return PayloadOS::GOOD;
+}
+
+void GPSBackdoor::printReport(){
+    Serial.println("Version: backdoor");
+    Serial.print("Initialized: ");
+    Serial.println((init_m)? "yes" : "no");
+    printGPSData(data);
 }
 
 //backdoor interface
@@ -142,6 +190,14 @@ error_t TransmitterBackdoor::deInit(){
     return PayloadOS::GOOD;
 }
 
+void TransmitterBackdoor::printReport(){
+    Serial.println("Version: backdoor");
+    Serial.print("Initialized: ");
+    Serial.println((init_m)? "yes" : "no");
+    Serial.print("Available: ");
+    Serial.println((available())? "yes" : "no");
+}
+
 //Power check--------------------------------------------------
 PowerCheckBackdoor::PowerCheckBackdoor() : init_m(0), power(0){}
 
@@ -162,6 +218,15 @@ Peripherals::PeripheralStatus PowerCheckBackdoor::status(){
 error_t PowerCheckBackdoor::deInit(){
     init_m = false;
     return PayloadOS::GOOD;
+}
+
+void PowerCheckBackdoor::printReport(){
+    Serial.println("Version: backdoor");
+    Serial.print("Initialized: ");
+    Serial.println((init_m)? "yes" : "no");
+    Serial.print("Voltage: ");
+    Serial.print(power);
+    Serial.println("V");
 }
 
 //backdoor interface
@@ -189,6 +254,14 @@ Peripherals::PeripheralStatus ArmSwitchBackdoor::status(){
 error_t ArmSwitchBackdoor::deInit(){
     init_m = false;
     return PayloadOS::GOOD;
+}
+
+void ArmSwitchBackdoor::printReport(){
+    Serial.println("Version: backdoor");
+    Serial.print("Initialized: ");
+    Serial.println((init_m)? "yes" : "no");
+    Serial.print("State: ");
+    Serial.println((state)? "on" : "off");
 }
 
 //backdoor interface

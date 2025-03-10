@@ -1,5 +1,6 @@
 #include "PayloadOSPeripheralInterfaces.h"
 #include <cmath>
+#include <Arduino.h>
 
 using namespace PayloadOS;
 using namespace Peripherals;
@@ -61,7 +62,7 @@ RotationVector IMUInterface::getAngularVelocity_rad_s(){
 
 float_t IMUInterface::getAccelerationMagnitude_m_s2(){
     LinearVector a = getAcceleration_m_s2();
-    return std::sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
+    return magnitude(a);
 }
 float_t IMUInterface::getAccelerationMagnitude_ft_s2(){
     return getAccelerationMagnitude_m_s2() * METER_TO_FEET;
@@ -69,26 +70,51 @@ float_t IMUInterface::getAccelerationMagnitude_ft_s2(){
 
 LinearVector IMUInterface::getDirection(){
     LinearVector g = getGravityVector();
-    return {-g.x, -g.y, g.z};
+    return norm(LinearVector{-g.x, -g.y, g.z});
 }
 
 float_t IMUInterface::getVerticalAngle_deg(){
-    LinearVector g = getGravityVector();
-    return std::acos(g.z / std::sqrt(g.z * g.x + g.y * g.y + g.z * g.z)) * RAD_TO_DEG;
+    return getVerticalAngle_rad() * RAD_TO_DEG;
 }
 
 float_t IMUInterface::getVerticalAngle_rad(){
     LinearVector g = getGravityVector();
-    return std::acos(g.z / std::sqrt(g.z * g.x + g.y * g.y + g.z * g.z));
+    return std::acos(g.z / magnitude(g));
 }
 
 float_t IMUInterface::getAngularVelocityMagnitude_deg_s(){
     RotationVector omega = getAngularVelocity_deg_s();
-    return std::sqrt(omega.x_rot * omega.x_rot + omega.y_rot * omega.y_rot + omega.z_rot * omega.z_rot);
+    return magnitude(omega);
 }
 
 float_t IMUInterface::getAngularVelocityMagnitude_rad_s(){
     return getAngularVelocityMagnitude_deg_s() * DEG_TO_RAD;
+}
+
+void IMUInterface::printLinear(LinearVector v){
+    Serial.printf("<%f, %f, %f>", v.x, v.y, v.z);
+}
+
+void IMUInterface::printRotatation(RotationVector v){
+    Serial.printf("<%f, %f, %f>", v.x_rot, v.y_rot, v.z_rot);
+}
+
+Peripherals::LinearVector IMUInterface::norm(Peripherals::LinearVector v){
+    float_t mag = magnitude(v);
+    return {v.x/mag, v.y/mag, v.z/mag};
+}
+
+float_t IMUInterface::magnitude(Peripherals::LinearVector v){
+    return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+
+Peripherals::RotationVector IMUInterface::norm(Peripherals::RotationVector v){
+    float_t mag = magnitude(v);
+    return {v.x_rot/mag, v.y_rot/mag, v.z_rot/mag};
+}
+
+float_t IMUInterface::magnitude(Peripherals::RotationVector v){
+    return std::sqrt(v.x_rot * v.x_rot + v.y_rot * v.y_rot + v.z_rot * v.z_rot);
 }
 
 //GPS
@@ -106,5 +132,28 @@ Coordinate GPSInterface::getPosition(){
     GPSData data = getData();
     return data.position;
 }
+
+void GPSInterface::printGPSData(const GPSData& data){
+    Serial.print("Location: ");
+    printGPSCoordinate(data.position);
+    Serial.print("Altitude: ");
+    Serial.println(data.altitude);
+    Serial.print("Satalites: ");
+    Serial.println(data.satalites);
+    Serial.print("Time since fix: ");
+    Serial.println(data.fixAge);
+}
+
+void GPSInterface::printGPSCoordinate(Coordinate c){
+    Serial.print(std::abs(c.x));
+    if(c.x < 0) Serial.print("S");
+    else Serial.print("N");
+    Serial.print(", ");
+    Serial.print(c.y);
+    if(c.x < 0) Serial.println("W");
+    else Serial.println("E");
+}
+
+
 
 

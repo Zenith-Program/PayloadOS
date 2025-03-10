@@ -6,8 +6,51 @@
 using namespace PayloadOS;
 using namespace Peripherals;
 
+#define FalseStatus {0,0,0,0}
+
 
 //Selection getters--------------------------------------------
+PeripheralInterface* PeripheralSelector::getPeripheral(PeripheralNames peripheral){
+    switch(peripheral){
+    case PeripheralNames::PayloadAltimeter:
+        return getPayloadAltimeter();
+        break;
+    case PeripheralNames::LightAPRSAltimeter:
+        return getLightAPRSAltimeter();
+        break;
+    case PeripheralNames::PayloadIMU:
+        return getPayloadIMU();
+        break;
+    case PeripheralNames::STEMnaut1:
+        return getSTEMnaut1();
+        break;
+    case PeripheralNames::STEMnaut2:
+        return getSTEMnaut2();
+        break;
+    case PeripheralNames::STEMnaut3:
+        return getSTEMnaut3();
+        break;
+    case PeripheralNames::STEMnaut4:
+        return getSTEMnaut4();
+        break;
+    case PeripheralNames::Transmitter:
+        return getTransmitter();
+        break;
+    case PeripheralNames::GPS:
+        return getGPS();
+        break;
+    case PeripheralNames::PowerCheck:
+        return getPowerCheck();
+        break;
+    case PeripheralNames::ArmSwitch:
+        return getArmSwitch();
+        break;
+    default:
+        return nullptr;
+        break;
+    }
+}
+            
 AltimeterInterface* PeripheralSelector::getPayloadAltimeter(){
     if(selections[getIndex(PeripheralNames::PayloadAltimeter)].isBackdoor) return &altimeterBackdoor;
     return &altimeterHardware;
@@ -64,6 +107,47 @@ ArmSwitchInterface* PeripheralSelector::getArmSwitch(){
 }
 
 //Hardware getters---------------------------------------------
+PeripheralInterface* PeripheralSelector::getPeripheralHardware(PeripheralNames peripheral){
+    switch(peripheral){
+        case PeripheralNames::PayloadAltimeter:
+            return getPayloadAltimeterHardware();
+            break;
+        case PeripheralNames::LightAPRSAltimeter:
+            return getLightAPRSAltimeterHardware();
+            break;
+        case PeripheralNames::PayloadIMU:
+            return getPayloadIMUHardware();
+            break;
+        case PeripheralNames::STEMnaut1:
+            return getSTEMnaut1Hardware();
+            break;
+        case PeripheralNames::STEMnaut2:
+            return getSTEMnaut2Hardware();
+            break;
+        case PeripheralNames::STEMnaut3:
+            return getSTEMnaut3Hardware();
+            break;
+        case PeripheralNames::STEMnaut4:
+            return getSTEMnaut4Hardware();
+            break;
+        case PeripheralNames::Transmitter:
+            return getTransmitterHardware();
+            break;
+        case PeripheralNames::GPS:
+            return getGPSHardware();
+            break;
+        case PeripheralNames::PowerCheck:
+            return getPowerCheckHardware();
+            break;
+        case PeripheralNames::ArmSwitch:
+            return getArmSwitchHardware();
+            break;
+        default:
+            return nullptr;
+            break;
+    }
+}
+            
 Hardware::AltimeterHardware* PeripheralSelector::getPayloadAltimeterHardware(){
     if(selections[getIndex(PeripheralNames::PayloadAltimeter)].hasHardware) return &altimeterHardware;
     return nullptr;
@@ -122,6 +206,46 @@ Hardware::ArmSwitchHardware* PeripheralSelector::getArmSwitchHardware(){
 
 
 //Backdoor getters---------------------------------------------
+PeripheralInterface* PeripheralSelector::getPeripheralBackdoor(PeripheralNames peripheral){
+    switch(peripheral){
+        case PeripheralNames::PayloadAltimeter:
+            return getPayloadAltimeterBackdoor();
+            break;
+        case PeripheralNames::LightAPRSAltimeter:
+            return getLightAPRSAltimeterBackdoor();
+            break;
+        case PeripheralNames::PayloadIMU:
+            return getPayloadIMUBackdoor();
+            break;
+        case PeripheralNames::STEMnaut1:
+            return getSTEMnaut1Backdoor();
+            break;
+        case PeripheralNames::STEMnaut2:
+            return getSTEMnaut2Backdoor();
+            break;
+        case PeripheralNames::STEMnaut3:
+            return getSTEMnaut3Backdoor();
+            break;
+        case PeripheralNames::STEMnaut4:
+            return getSTEMnaut4Backdoor();
+            break;
+        case PeripheralNames::Transmitter:
+            return getTransmitterBackdoor();
+            break;
+        case PeripheralNames::GPS:
+            return getGPSBackdoor();
+            break;
+        case PeripheralNames::PowerCheck:
+            return getPowerCheckBackdoor();
+            break;
+        case PeripheralNames::ArmSwitch:
+            return getArmSwitchBackdoor();
+            break;
+        default:
+            return nullptr;
+            break;
+    }
+}
 Simulation::AltimeterBackdoor* PeripheralSelector::getPayloadAltimeterBackdoor(){
     return &altimeterBackdoor;
 }
@@ -405,7 +529,7 @@ PeripheralStatus PeripheralSelector::getStatus(PeripheralNames name) const{
         return PeripheralSelector::get()->getPowerCheck()->status();
         break;
     default:
-        return {0};
+        return FalseStatus;
     }
 }
 
@@ -426,6 +550,14 @@ bool PeripheralSelector::getHardwareAvailibility(PeripheralNames name) const{
 void PeripheralSelector::setAllHardwareAvalibility(bool connected){
     for(uint_t index = 0; index<PayloadOS_NumberOfPeripherals; index++)
         changeHardwareAvailability(static_cast<PeripheralNames>(index), connected);
+}
+
+void PeripheralSelector::printAllReports(){
+    for(uint_t index = 0; index<PayloadOS_NumberOfPeripherals; index++){
+        Serial.printf("##### %s #####\n", getNameFromEnum(static_cast<PeripheralNames>(index)));
+        getPeripheral(static_cast<PeripheralNames>(index))->printReport();
+    }
+        
 }
 //singleton implementation-------------------------------------
 PeripheralSelector::PeripheralSelector(){
