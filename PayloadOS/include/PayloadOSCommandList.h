@@ -4,7 +4,7 @@
 #include "PayloadOSToken.h"
 #include <array>
 
-#define CMD Interpreter::Command
+#define CMD PayloadOS::Interpreter::Command
 
 namespace PayloadOS{
     namespace Interpreter{

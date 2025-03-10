@@ -2,11 +2,15 @@
 #include "PayloadOSPeripheralInterfaces.h"
 #include "Adafruit_BNO055.h"
 #include "SparkFun_BNO080_Arduino_Library.h"
+#include <MS5607.h>
 
 namespace PayloadOS{
     namespace Hardware{
         class AltimeterHardware : public Peripherals::AltimeterInterface{
+            MS5607 altimeter;
             bool init_m;
+            float_t lastAltitude, lastTemp, lastPressure;
+            uint_t lastUpdateTime;
         public:
             AltimeterHardware();
             float_t getAltitude_m() override;
@@ -16,6 +20,9 @@ namespace PayloadOS{
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
             void printReport() override;
+        private:
+            error_t updateReadings();
+            error_t updateInit();
         };
 
         class IMUHardware : public Peripherals::IMUInterface{
@@ -104,6 +111,9 @@ namespace PayloadOS{
         class STEMnaut4Hardware : public Peripherals::IMUInterface{
             bool init_m;
             BNO080 imu;
+            Peripherals::LinearVector acceleration;
+            Peripherals::RotationVector angularVelocity;
+            Peripherals::LinearVector gravity;
         public:
             STEMnaut4Hardware();
             Peripherals::LinearVector getAcceleration_m_s2() override;
@@ -113,6 +123,10 @@ namespace PayloadOS{
             Peripherals::PeripheralStatus status() override;
             error_t deInit() override;
             void printReport() override;
+        private:
+            bool updateReadings();
+            uint_t updateInitStatus();
+            static const char* getResetMeaning(uint_t);
         };
 
         class PowerCheckHardware : public Peripherals::PowerCheckInterface{

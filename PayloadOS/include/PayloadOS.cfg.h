@@ -84,6 +84,19 @@
 #define PayloadOS_LogFileNameSize 64
 #define PayloadOS_SimulationFileNameSize 64
 
+/*Sensor Configurations
+ * Macros: 
+ * PayloadOS_AltimeterSamplePeriod
+ * PayloadOS_STEMnautAccelerometerSamplePeriod - sample period of the STEMnauts' IMUs in ms
+ * PayloadOS_STEMnautGyroscopeSamplePeriod - sample period of the STEMnauts' IMUs in ms
+ * PayloadOS_STEMnautMagnetometerSamplePeriod - sample period of the STEMnauts' IMUs in ms
+*/
+
+#define PayloadOS_AltimeterSamplePeriod 50
+#define PayloadOS_STEMnautAccelerometerSamplePeriod 50
+#define PayloadOS_STEMnautGyroscopeSamplePeriod 50
+#define PayloadOS_STEMnautMagnetometerSamplePeriod 50
+
 /*Other Configurations-----------------------------------------
  * Macros:
  * PayloadOS_ConsoleBaudRate - baud rate of the console. Make sure that serial monitor or whatever console program you're usign matches this
@@ -92,3 +105,6 @@
 
 #define PayloadOS_ConsoleBaudRate 115200
 #define PayloadOS_DefaultSamplePeriod 1000000
+
+/*
+*/

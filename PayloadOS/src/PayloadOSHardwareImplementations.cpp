@@ -13,42 +13,102 @@ using namespace PayloadOS::Hardware;
 #define EmptyVector {0,0,0}
 #define EmptyGPS {{0,0}, 0, 0, 0}
 
+#define KELVIN_TO_CELCIUS_BIAS 273.15
+
 //Altimeter1---------------------------------------------------
-AltimeterHardware::AltimeterHardware() : init_m(false){}
+AltimeterHardware::AltimeterHardware() : altimeter(MS5607(AltimeterAdress)), init_m(false), lastAltitude(0), lastTemp(0), lastPressure(0){}
 
 float_t AltimeterHardware::getAltitude_m(){
-    return 0;
+    updateReadings();
+    return lastAltitude;
 }
 
 float_t AltimeterHardware::getPressure_mBar(){
-    return 0; //for now
+    updateReadings();
+    return lastPressure;
 }
 
 float_t AltimeterHardware::getTemperature_K(){
-    return 0; // for now
+    updateReadings();
+    return lastTemp + KELVIN_TO_CELCIUS_BIAS;
 }
 
 error_t AltimeterHardware::init(){
-    Wire.begin();
-    init_m = true;
-    return PayloadOS::GOOD;
+    int8_t error = altimeter.begin();
+    if(error == 1){
+        init_m = true;
+        return PayloadOS::GOOD;
+    } 
+    init_m = false;
+    return PayloadOS::ERROR;
 }
 
 Peripherals::PeripheralStatus AltimeterHardware::status(){
     bool responsive = false;
-    Wire.begin();
     Wire.beginTransmission(AltimeterAdress);
     if(Wire.endTransmission() == 0) responsive = true;
-    return {init_m, responsive, init_m && responsive, init_m && responsive};
+    bool reading = true;
+    if(updateReadings() == PayloadOS::ERROR) reading = false;
+    return {init_m, responsive, init_m && responsive && reading, init_m && responsive && reading};//maybe add zero
 }
 
 error_t AltimeterHardware::deInit(){
+    lastAltitude = 0;
+    lastPressure = 0; 
+    lastTemp = 0;
     init_m = false;
     return PayloadOS::GOOD;
 }
 
 void AltimeterHardware::printReport(){
+    Serial.println("Version: Hardware");
+    Serial.print("Initialized: ");
+    Serial.println(init_m? "yes" : "no");
+    Serial.print("Altitude: ");
+    if(Interpreter::ConsoleInterpreter::get()->getCurrentUnits()){
+        Serial.print(getAltitude_ft());
+        Serial.println("ft");
+    }
+    else{
+        Serial.print(getAltitude_m());
+        Serial.println("m");
+    }
+    Serial.print("Temperature: ");
+    if(Interpreter::ConsoleInterpreter::get()->getCurrentUnits()){
+        Serial.print(getTemperature_F());
+        Serial.println("F");
+    }
+    else{
+        Serial.print(getTemperature_C());
+        Serial.println("C");
+    }
+    Serial.print("Pressure: ");
+    if(Interpreter::ConsoleInterpreter::get()->getCurrentUnits()){
+        Serial.print(getPressure_psi());
+        Serial.println("psi");
+    }
+    else{
+        Serial.print(getPressure_mBar());
+        Serial.println("mBar");
+    }
+}
 
+error_t AltimeterHardware::updateReadings(){
+    if(init_m){
+        if(millis() - lastUpdateTime > PayloadOS_AltimeterSamplePeriod){
+            lastUpdateTime = millis();
+            if(altimeter.readDigitalValue()){
+                lastAltitude = altimeter.getAltitude();
+                lastTemp = altimeter.getTemperature();
+                lastPressure = altimeter.getPressure();
+                return PayloadOS::GOOD;
+            }
+            deInit();
+            return PayloadOS::ERROR;
+        }
+        return PayloadOS::GOOD;
+    }
+    return PayloadOS::GOOD;
 }
 
 //IMU----------------------------------------------------------
@@ -114,7 +174,7 @@ void IMUHardware::printReport(){
     uint8_t system, gyro, accel, mag;
     imu.getCalibration(&system, &gyro, &accel, &mag);
     updateInitStatus(systemStatus);
-    Serial.println(init_m);
+    Serial.println(init_m? "yes" : "no");
     const char* status = getStatusMeaning(systemStatus);
     const char* error = getErrorMeaning(systemError);
     Serial.printf("Status code: %s\n", status);
@@ -320,24 +380,36 @@ void STEMnaut3Hardware::printReport(){
 
 
 //STEMnaut4----------------------------------------------------
-STEMnaut4Hardware::STEMnaut4Hardware() : init_m(false){}
+STEMnaut4Hardware::STEMnaut4Hardware() : init_m(false), imu(BNO080()), acceleration(EmptyVector), angularVelocity(EmptyVector), gravity(EmptyVector){}
 
 Peripherals::LinearVector STEMnaut4Hardware::getAcceleration_m_s2(){
-    return {0,0,0}; //for now
+    updateReadings();
+    return acceleration;
 }
 
 Peripherals::RotationVector STEMnaut4Hardware::getAngularVelocity_deg_s(){
-    return {0,0,0}; //for now
+    updateReadings();
+    return angularVelocity;
 }
 
 Peripherals::LinearVector STEMnaut4Hardware::getGravityVector(){
-    return {0,0,0}; //for now
+    updateReadings();
+    return gravity;
 }
 
 error_t STEMnaut4Hardware::init(){
+    Wire1.begin();
     if(!imu.begin(STEMnaut4Adress, Wire1)){
         return PayloadOS::ERROR;
     }
+    imu.modeOn();
+    init_m = true;
+    imu.enableLinearAccelerometer(PayloadOS_STEMnautAccelerometerSamplePeriod);
+    imu.enableGyro(PayloadOS_STEMnautGyroscopeSamplePeriod);
+    imu.enableGravity(PayloadOS_STEMnautMagnetometerSamplePeriod);
+    imu.calibrateAll();
+    delay(10);
+    imu.hasReset();
     return PayloadOS::GOOD;
 }
 
@@ -350,12 +422,97 @@ Peripherals::PeripheralStatus STEMnaut4Hardware::status(){
 
 error_t STEMnaut4Hardware::deInit(){
     init_m = false;
+    imu.modeSleep();
     return PayloadOS::GOOD;
 }
 
 void STEMnaut4Hardware::printReport(){
-    
+    Serial.println("Version: Hardware");
+    Serial.print("Initialized: ");
+    uint_t resetCode = updateInitStatus();
+    Serial.println(init_m? "yes" : "no");
+    //status
+    Serial.print("Reset: ");
+    Serial.println(getResetMeaning(resetCode));
+    Serial.print("Incoming data: ");
+    Serial.println(imu.dataAvailable()? "yes" : "no");
+    Serial.print("Calibration: ");
+    Serial.println(imu.calibrationComplete()? "yes" : "no");
+    //readings
+    Serial.print("Acceleration: ");
+    if(Interpreter::ConsoleInterpreter::get()->getCurrentUnits()){
+        printLinear(getAcceleration_ft_s2());
+        Serial.println("ft/s^2");
+    }
+    else{
+        printLinear(getAcceleration_m_s2());
+        Serial.println("m/s^2");
+    }
+    Serial.print("Angular Velocity: ");
+    if(Interpreter::ConsoleInterpreter::get()->getCurrentUnits()){
+        printRotatation(getAngularVelocity_deg_s());
+        Serial.println("deg/s");
+    }
+    else{
+        printRotatation(getAngularVelocity_rad_s());
+        Serial.println("rad/s");
+    }
+    Serial.print("Direction: ");
+    printLinear(getDirection());
+    Serial.println();
 }
+
+bool STEMnaut4Hardware::updateReadings(){
+    if(imu.dataAvailable()){
+        uint8_t accuracy; //discard for now
+        imu.getLinAccel(acceleration.x, acceleration.y, acceleration.z, accuracy);
+        Serial.println(accuracy);
+        imu.getGyro(angularVelocity.x_rot, angularVelocity.y_rot, angularVelocity.z_rot, accuracy);
+        Serial.println(accuracy);
+        imu.getGravity(gravity.x, gravity.y, gravity.z, accuracy);
+        Serial.println(accuracy);
+        Peripherals::IMUInterface::printLinear(gravity);
+        return true;
+    }
+    return false;
+}
+
+uint_t STEMnaut4Hardware::updateInitStatus(){
+    if(imu.hasReset()){
+        init_m = false;
+        return imu.resetReason();
+    }
+    return 0;
+}
+
+const char* STEMnaut4Hardware::getResetMeaning(uint_t code){
+    switch(code){
+    case 0:
+        return "None";
+        break;
+    case 1:
+        return "POR";
+        break;
+    case 2:
+        return "Internal";
+        break;
+    case 3:
+        return "Watchdog";
+        break;
+    case 4:
+        return "External";
+        break;
+    case 5:
+        return "Other";
+        break;
+    default:
+        return "Undefined";
+        break;
+
+    }
+}
+
+
 
 //GPS----------------------------------------------------------
 Peripherals::GPSData GPSHardware::getData(){

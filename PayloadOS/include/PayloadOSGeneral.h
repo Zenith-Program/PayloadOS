@@ -65,6 +65,34 @@ static_assert(false, "PayloadOS_SimulationFileNameSize must be defined in file P
 static_assert(PayloadOS_SimulationFileNameSize>0, "The buffer size defined by PayloadOS_SimulationFileNameSize must be positive");
 #endif
 
+//sensor configurations
+/*
+#ifndef PayloadOS_AltimeterSamplePeriod
+static_assert(false, "PayloadOS_AltimeterSamplePeriod must be defined in the file PayloadOS.cfg.h");
+#else
+static_assert(PayloadOS_AltimeterSamplePeriod>0, "The interval defined by PayloadOS_AltimeterSamplePeriod must be positive");
+#endif
+*/
+
+#ifndef PayloadOS_STEMnautAccelerometerSamplePeriod
+static_assert(false, "PayloadOS_STEMnautAccelerometerSamplePeriod must be defined in the file PayloadOS.cfg.h");
+#else
+static_assert(PayloadOS_STEMnautAccelerometerSamplePeriod>0, "The interval defined by PayloadOS_STEMnautAccelerometerSamplePeriod must be positive");
+#endif
+
+#ifndef PayloadOS_STEMnautGyroscopeSamplePeriod
+static_assert(false, "PayloadOS_STEMnautGyroscopeSamplePeriod must be defined in the file PayloadOS.cfg.h");
+#else
+static_assert(PayloadOS_STEMnautGyroscopeSamplePeriod>0, "The interval defined by PayloadOS_STEMnautGyroscopeSamplePeriod must be positive");
+#endif
+
+#ifndef PayloadOS_STEMnautMagnetometerSamplePeriod
+static_assert(false, "PayloadOS_STEMnautMagnetometerSamplePeriod must be defined in the file PayloadOS.cfg.h");
+#else
+static_assert(PayloadOS_STEMnautMagnetometerSamplePeriod>0, "The interval defined by PayloadOS_STEMnautMagnetometerSamplePeriod must be positive");
+#endif
+
+
 //other configurations
 #ifndef PayloadOS_ConsoleBaudRate
 static_assert(false, "PayloadOS_ConsoleBaudRate must be defined in file PayloadOS.cfg.h");
