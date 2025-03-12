@@ -97,6 +97,13 @@
 #define PayloadOS_STEMnautGyroscopeSamplePeriod 50
 #define PayloadOS_STEMnautMagnetometerSamplePeriod 50
 
+/*Simulation configurations
+ * Macros:
+ * PayloadOS_ModelSim_ProcessOrder - order of the random process generator. Determines how complex the processes it generates are
+*/
+
+#define PayloadOS_ModelSim_ProcessOrder 5
+
 /*Other Configurations-----------------------------------------
  * Macros:
  * PayloadOS_ConsoleBaudRate - baud rate of the console. Make sure that serial monitor or whatever console program you're usign matches this

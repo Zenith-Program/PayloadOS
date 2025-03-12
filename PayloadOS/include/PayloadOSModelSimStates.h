@@ -20,6 +20,7 @@ namespace PayloadOS{
             };
 
             class Delay : public SimState{
+                uint_t wait_ms;
             public:
                 void init() override;
                 UpdateParams update() override;
@@ -35,6 +36,7 @@ namespace PayloadOS{
             };
 
             class Boost : public SimState{
+                uint_t wait_ms;
             public:
                 void init() override;
                 UpdateParams update() override;
@@ -50,6 +52,9 @@ namespace PayloadOS{
             };
 
             class Coast : public SimState{
+                float_t initialAltitude_m;
+                float_t initialVelocity_m_s;
+                float_t initialVoltage_V;
             public:
                 void init() override;
                 UpdateParams update() override;
@@ -62,6 +67,9 @@ namespace PayloadOS{
                 static Coast* get();
                 Coast(const Coast&) = delete;
                 void operator=(const Coast&) = delete;
+
+                //stateTransition
+                void setInitials(float_t, float_t, float_t);
             };
 
             class Apogee : public SimState{

@@ -1,6 +1,7 @@
 #include "PayloadOSStateMachine.h"
 #include <Arduino.h>
 #include "PayloadOSPeripheralSelector.h"
+#include "PayloadOSModelSimProcess.h"
 
 using namespace PayloadOS;
 using namespace State;
@@ -9,15 +10,16 @@ using namespace State;
 
 //global---------------------------------------
 bool Debug::exit = false;
-
 //state table implementation-------------------
 void Debug::init(){
     Serial.println("Entered Debug Mode");
     exit = false;
+    
+
 }
 void Debug::loop(){
     // do nothing
-    Serial.println("Test2");
+    Serial.println(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getAltitude_ft());
 }
 void Debug::end(){
     Serial.println("Exited Debug Mode");

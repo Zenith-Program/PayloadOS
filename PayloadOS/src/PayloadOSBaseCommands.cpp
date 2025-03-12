@@ -40,12 +40,7 @@ void ProgramState::getState(const Interpreter::Token*){
     Serial.println(ProgramState::get()->getCurrentStateName());
 }
 void ProgramState::commands(const Interpreter::Token*){
-    Serial.print("##### ");
-    Serial.print(ProgramState::get()->getCurrentStateName());
-    Serial.println(" Commands #####");
-    ProgramState::get()->getCurrentCommands()->printCommands();
-    Serial.println("##### Base Commands #####");
-    ProgramState::get()->getBaseCommands()->printCommands();
+    Interpreter::ConsoleInterpreter::get()->printAvailableCommands();
 }
 
 void ProgramState::pause_C(const Interpreter::Token*){

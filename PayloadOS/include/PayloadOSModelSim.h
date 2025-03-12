@@ -2,6 +2,7 @@
 #include "PayloadOSGeneral.h"
 #include "PayloadOSPeripheralInterfaces.h"
 #include <IntervalTimer.h>
+#include "PayloadOSCommandList.h"
 
 namespace PayloadOS{
     namespace Simulation{
@@ -22,6 +23,19 @@ namespace PayloadOS{
                 virtual void init() = 0;
                 virtual UpdateParams update() = 0;
                 virtual void end() = 0;
+            protected:
+                //static helpers
+                static void addNoise(UpdateParams&);
+                static UpdateParams getBaseParams();
+                static float_t altitude_mToPressure_mBar(float_t);
+                static float_t getNoise(float_t);
+                static void addNoiseToVector(Peripherals::LinearVector&, float_t);
+                static void addNoiseToVector(Peripherals::RotationVector&, float_t);
+                static void setIMUsOrientation(UpdateParams&, Peripherals::LinearVector);
+                static void setIMUsAcceleration(UpdateParams&, Peripherals::LinearVector);
+                static void setIMUsAngularVelocity(UpdateParams&, Peripherals::RotationVector);
+                static void setAltitudesAndPressures(UpdateParams&, float_t);
+
             };
 
             enum class SimStates{
@@ -39,10 +53,11 @@ namespace PayloadOS{
                 void stop();
                 void clock();
                 static void ClockISR();
+                const Interpreter::CommandList* getCommands();
                 //configuration
                 void setClockPeriod(uint_t);
             private:
-                void initTimer(uint8_t);
+                void initTimer(uint_t);
                 void stopTimer();
                 static SimState* getState(SimStates);
                 static SimStates nextState(SimStates);
@@ -54,6 +69,18 @@ namespace PayloadOS{
                 void operator=(const ModelSim&) = delete;
             private:
                 ModelSim();
+
+                //helpers
+                static const char* getStateName(SimStates);
+
+                //simulation interface
+                static void startSim(const Interpreter::Token*);
+                static void stopSim(const Interpreter::Token*);
+                static void simStatus(const Interpreter::Token*);
+                static void setSimClock(const Interpreter::Token*);
+                static void getSimData(const Interpreter::Token*);
+                static void setSimData(const Interpreter::Token*);
+                static void seedRNG(const Interpreter::Token*);
             };
     }
     }

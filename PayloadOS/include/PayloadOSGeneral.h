@@ -92,6 +92,13 @@ static_assert(false, "PayloadOS_STEMnautMagnetometerSamplePeriod must be defined
 static_assert(PayloadOS_STEMnautMagnetometerSamplePeriod>0, "The interval defined by PayloadOS_STEMnautMagnetometerSamplePeriod must be positive");
 #endif
 
+//simulation configurations
+#ifndef PayloadOS_ModelSim_ProcessOrder
+static_assert(false, "PayloadOS_ModelSim_ProcessOrder must be defined in the file PayloadOS.cfg.h");
+#else
+static_assert(PayloadOS_ModelSim_ProcessOrder>1, "The order defined by PayloadOS_ModelSim_ProcessOrder must be greater than zero");
+#endif
+
 
 //other configurations
 #ifndef PayloadOS_ConsoleBaudRate

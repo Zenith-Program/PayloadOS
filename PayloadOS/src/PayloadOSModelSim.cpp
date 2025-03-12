@@ -1,6 +1,9 @@
 #include "PayloadOSModelSim.h"
 #include "PayloadOSModelSimStates.h"
 #include "PayloadOSPeripheralSelector.h"
+#include "PayloadOSModelSimData.h"
+#include <cstring>
+#include <Arduino.h>
 
 using namespace PayloadOS;
 using namespace Simulation;
@@ -27,6 +30,7 @@ void ModelSim::clock(){
         state = nextState(state);
         getState(state)->init();
     }
+    
 }
 
 void ModelSim::ClockISR(){
@@ -36,10 +40,14 @@ void ModelSim::ClockISR(){
 //preferences
 void ModelSim::setClockPeriod(uint_t period){
     this->period = period;
+    if(state != SimStates::Inactive){
+        timer.end();
+        timer.begin(ClockISR, period);
+    }
 }
 
 //static helpers
-void ModelSim::initTimer(uint8_t period){
+void ModelSim::initTimer(uint_t period){
     timer.begin(ClockISR, period);
 }
 
@@ -140,6 +148,102 @@ ModelSim* ModelSim::get(){
 }
 
 
-ModelSim::ModelSim() : state(SimStates::Inactive), period(100){
+ModelSim::ModelSim() : state(SimStates::Inactive), period(1000000){ //1s default clk
 
+}
+//helpers----------------------------------------------------------------------
+const char* ModelSim::getStateName(SimStates state){
+    if(state == SimStates::Inactive) return "inactive";
+    if(state == SimStates::Delay) return "delay";
+    if(state == SimStates::Boost) return "boost";
+    if(state == SimStates::Coast) return "coast";
+    if(state == SimStates::Apogee) return "apogee";
+    if(state == SimStates::Drogue) return "drogue";
+    if(state == SimStates::Deploy) return "deploy";
+    if(state == SimStates::Main) return "main";
+    if(state == SimStates::Landing) return "landing";
+    if(state == SimStates::Landed) return "landed";
+    return "undefined";
+}
+
+//commands---------------------------------------------------------------------
+const Interpreter::CommandList* ModelSim::getCommands(){
+    static constexpr auto cmds = std::array{
+        CMD{"startSim", "", startSim},
+        CMD{"stopSim", "", stopSim},
+        CMD{"simStatus", "", simStatus},
+        CMD{"simClock", "uw", setSimClock},
+        CMD{"simParameters", "", getSimData},
+        CMD{"setSimParameter", "sf", setSimData},
+        CMD{"seedSimRNG", "u", seedRNG}
+    };
+    static const Interpreter::CommandList simList(cmds.data(), cmds.size());
+    return &simList;
+}
+
+void ModelSim::startSim(const Interpreter::Token*){
+    get()->start();
+}
+
+void ModelSim::stopSim(const Interpreter::Token*){
+    get()->stop();
+}
+
+void ModelSim::simStatus(const Interpreter::Token*){
+    Serial.print("Simulation state: ");
+    Serial.println(getStateName(get()->state));
+    Serial.print("Clock period: ");
+    Serial.print(get()->period/1000.0);
+    Serial.println("ms");
+}
+
+void ModelSim::setSimClock(const Interpreter::Token* args){
+    uint_t period = args[0].getUnsignedData();
+    char unit[5];
+    args[1].copyStringData(unit, 5);
+    if(std::strcmp(unit, "ns") == 0){
+        get()->setClockPeriod(period/1000);
+        return;
+    }
+    if(std::strcmp(unit, "us") == 0){
+        get()->setClockPeriod(period);
+        return;
+    }
+    if(std::strcmp(unit, "ms") == 0){
+        get()->setClockPeriod(period*1000);
+        return;
+    }
+    if(std::strcmp(unit, "s") == 0){
+        get()->setClockPeriod(period*1000000);
+        return;
+    }
+    Serial.print("'");
+    Serial.print(unit);
+    Serial.println("' is not a valid unit. Choose ns, us, ms, or s");
+    get()->setClockPeriod(period);
+}
+void ModelSim::getSimData(const Interpreter::Token*){
+    ModelSimData::get()->printData();
+}
+void ModelSim::setSimData(const Interpreter::Token* args){
+    char dataName[64];
+    args[0].copyStringData(dataName, 64);
+    float_t value = args[1].getFloatData();
+    Parameter* target = ModelSimData::get()->getDataWithName(dataName);
+    if(target == nullptr){
+        Serial.print("ModelSim does not have a parameter with the name '");
+        Serial.print(dataName);
+        Serial.println("'");
+        return;
+    }
+    if(target->positive && value < 0){
+        Serial.printf("'%s' cannot be assigned a negative value\n", dataName);
+        return;
+    }
+    target->value = value;
+}
+
+void ModelSim::seedRNG(const Interpreter::Token* args){
+    uint_t newSeed = args[0].getUnsignedData();
+    randomSeed(newSeed);
 }

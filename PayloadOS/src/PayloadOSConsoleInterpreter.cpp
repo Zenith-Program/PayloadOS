@@ -1,7 +1,9 @@
 #include "PayloadOSConsoleInterpreter.h"
 #include "PayloadOSConsoleIO.h"
 #include "PayloadOSCommandList.h"
+#include "PayloadOSModelSim.h"
 #include <cstring>
+#include <Arduino.h>
 
 using namespace PayloadOS;
 using namespace PayloadOS::Interpreter;
@@ -60,6 +62,11 @@ error_t ConsoleInterpreter::readLine() {
 		const Interpreter::CommandList* stateList = State::ProgramState::get()->getCurrentCommands();
         if(stateList != nullptr) command = stateList->getCommandWithName(commandBuffer);
 	}
+	//search simulation list if not found
+	if(command == nullptr){
+		const Interpreter::CommandList* modelSimList = Simulation::Model::ModelSim::get()->getCommands();
+		if(modelSimList != nullptr) command = modelSimList->getCommandWithName(commandBuffer);
+	}
 	//check that command was found 
 	if (command == nullptr) {
 		SerialIO::get()->printf("<[Cmd:error] Command '%s' is not available in this focus\n", commandBuffer);
@@ -96,14 +103,18 @@ error_t ConsoleInterpreter::readLine() {
 //-----------------------------------------------------------------------------
 
 void ConsoleInterpreter::printAvailableCommands() const {
-	//print state-specific first
-	SerialIO::get()->printf("--%s--\n", State::ProgramState::get()->getCurrentStateName());
-	const Interpreter::CommandList* stateList = State::ProgramState::get()->getCurrentCommands();
-	stateList->printCommands();
-	//print general
-	const Interpreter::CommandList* generalList = State::ProgramState::get()->getBaseCommands();
-	SerialIO::get()->printf("--General--\n");
-	generalList->printCommands();
+	const CommandList* list;
+	Serial.print("##### ");
+    Serial.print(State::ProgramState::get()->getCurrentStateName());
+    Serial.println(" Commands #####");
+    list = State::ProgramState::get()->getCurrentCommands();
+	if(list != nullptr) list->printCommands();
+    Serial.println("##### Base Commands #####");
+    list = State::ProgramState::get()->getBaseCommands();
+	if(list != nullptr) list->printCommands();
+	Serial.println("##### Model Sim Commands #####");
+	list = Simulation::Model::ModelSim::get()->getCommands();
+	if(list != nullptr) list->printCommands();
 }
 
 bool ConsoleInterpreter::getCurrentUnits() const{
