@@ -9,11 +9,19 @@ using namespace PayloadOS::Hardware;
 #define LightAPRSAdress 0x38
 #define STEMnaut4Adress 0x4B
 
+#define LightAPRSTransmitCommand 0x01
+#define LightAPRSADCCommand 0x02
+#define LightAPRSAltimeterCommand 0x03
+#define LightAPRSGPSCommand 0x04
+
+#define I2C_DelayTime_us 100
+
 #define FalseStatus {0,0,0,0}
 #define EmptyVector {0,0,0}
 #define EmptyGPS {{0,0}, 0, 0, 0}
 
 #define KELVIN_TO_CELCIUS_BIAS 273.15
+#define PASCALS_TO_mBAR_SCALE 0.01
 
 //Altimeter1---------------------------------------------------
 AltimeterHardware::AltimeterHardware() : altimeter(MS5607(AltimeterAdress)), init_m(false), lastAltitude(0), lastTemp(0), lastPressure(0){}
@@ -535,65 +543,136 @@ void GPSHardware::printReport(){
     
 }
 //Altimeter2---------------------------------------------------
+Altimeter2Hardware::Altimeter2Hardware() : init_m(false), lastAltitude_m(0), lastPressure_pa(0), lastTemperature_C(0), lastReadingTime(millis()){}
 float_t Altimeter2Hardware::getAltitude_m(){
-    return 0; //for now
+   if(!init_m) return 0;
+   updateReadings();
+   return lastAltitude_m;
 }
 
 float_t Altimeter2Hardware::getPressure_mBar(){
-    return 0; //for now
+    if(!init_m) return 0;
+    updateReadings();
+    return lastPressure_pa * PASCALS_TO_mBAR_SCALE;
 }
 
 float_t Altimeter2Hardware::getTemperature_K(){
-    return 0; // for now
+    if(!init_m) return 0;
+    updateReadings();
+    return lastTemperature_C + KELVIN_TO_CELCIUS_BIAS;
 }
 
 error_t Altimeter2Hardware::init(){
-    return PayloadOS::ERROR;
+    Wire2.begin();
+    init_m = true;
+    return PayloadOS::GOOD;
 }
 
 Peripherals::PeripheralStatus Altimeter2Hardware::status(){
-    return FalseStatus;
+    bool available = false;
+    Wire2.begin();
+    Wire2.beginTransmission(LightAPRSAdress);
+    if(Wire2.endTransmission() == 0) available = true;
+    return {init_m, available, init_m && available, init_m && available};
 }
 
 error_t Altimeter2Hardware::deInit(){
-    return PayloadOS::ERROR;
+    init_m = false;
+    return PayloadOS::GOOD;
 }
 
 void Altimeter2Hardware::printReport(){
-    
+    Serial.println("Version: Hardware");
+    Serial.print("Initialized: ");
+    Serial.println(init_m? "yes" : "no");
+    if(Interpreter::ConsoleInterpreter::get()->getCurrentUnits()){
+        Serial.printf("Altitude - %.2fft\n", getAltitude_ft());
+        Serial.printf("Pressure - %.2fpsi\n", getPressure_psi());
+        Serial.printf("Temperature - %.2fF\n", getTemperature_F());
+    }
+    else{
+        Serial.printf("Altitude - %.2fm\n", getAltitude_m());
+        Serial.printf("Pressure - %.2fmBar\n", getPressure_mBar());
+        Serial.printf("Temperature - %.2fC\n", getTemperature_C());
+    }
+}
+
+error_t Altimeter2Hardware::updateReadings(){
+    constexpr uint_t MAX_SAMPLE_PERIOD_ms = 50;
+    if(millis() - lastReadingTime > MAX_SAMPLE_PERIOD_ms){
+        Wire2.beginTransmission(LightAPRSAdress);
+        Wire2.write(LightAPRSAltimeterCommand);
+        if(Wire2.endTransmission()!=0) return PayloadOS::ERROR;
+        delayMicroseconds(I2C_DelayTime_us);
+        Wire2.requestFrom(LightAPRSAdress, 3*sizeof(float));
+        delayMicroseconds(I2C_DelayTime_us);
+        float recived1, recived2, recived3;
+        Wire2.readBytes((char*)&recived1, sizeof(recived1));
+        Wire2.readBytes((char*)&recived2, sizeof(recived2));
+        Wire2.readBytes((char*)&recived3, sizeof(recived3));
+        lastAltitude_m = static_cast<float_t>(recived1);
+        lastPressure_pa = static_cast<float_t>(recived2);
+        lastTemperature_C = static_cast<float_t>(recived3);
+        lastReadingTime = millis();
+        return PayloadOS::GOOD;
+    }
+    return PayloadOS::GOOD;
 }
 
 //Transmitter--------------------------------------------------
-error_t TransmitterHardware::transmitString(const char*){
-    return PayloadOS::ERROR;
+TransmitterHardware::TransmitterHardware() : init_m(false), timeOfLastTransmission(millis()){}
+error_t TransmitterHardware::transmitString(const char* message){
+    constexpr uint_t MAXIMUM_MESSAGE_SIZE = 50;
+    if(!available()) return PayloadOS::ERROR;
+    Wire2.beginTransmission(LightAPRSAdress);
+    Wire2.write(LightAPRSTransmitCommand);
+    for(uint_t i=0; i<MAXIMUM_MESSAGE_SIZE && *message; i++)
+        Wire2.write(*message++);
+    if(Wire2.endTransmission() != 0) return PayloadOS::ERROR;
+    timeOfLastTransmission = millis();
+    return PayloadOS::GOOD;
 }
 
 bool TransmitterHardware::available(){
+    constexpr uint_t MINIMUM_WAIT_TIME_ms = 2000;
+    if(millis() - timeOfLastTransmission > MINIMUM_WAIT_TIME_ms) return init_m;
     return false;
 }
 
 error_t TransmitterHardware::init(){
-    return PayloadOS::ERROR;
+    Wire2.begin();
+    init_m = true;
+    return PayloadOS::GOOD;
 }
 
 Peripherals::PeripheralStatus TransmitterHardware::status(){
-    return FalseStatus;
+    bool read = false;
+    Wire2.begin();
+    Wire2.beginTransmission(LightAPRSAdress);
+    if(Wire2.endTransmission() == 0) read = true;
+    return {init_m, read, init_m && read && available(), init_m && read && available()};
 }
 
 error_t TransmitterHardware::deInit(){
-    return PayloadOS::ERROR;
+    init_m = false;
+    return PayloadOS::GOOD;
 }
 
 void TransmitterHardware::printReport(){
-    
+    Serial.println("Version: Hardware");
+    Serial.print("Initialized: ");
+    Serial.println(init_m? "yes" : "no");
+    Serial.print("Available: ");
+    Serial.println(available()? "yes" : "no");
 }
 
 //Power check--------------------------------------------------
-PowerCheckHardware::PowerCheckHardware() : init_m(false){}
+PowerCheckHardware::PowerCheckHardware() : init_m(false), lastPower(0){}
 
 float_t PowerCheckHardware::getVoltage(){
     if(!init_m) return 0;
-    return 5;
+    updateReadings();
+    return lastPower;
 }
 
 error_t PowerCheckHardware::init(){
@@ -607,7 +686,7 @@ Peripherals::PeripheralStatus PowerCheckHardware::status(){
     Wire2.begin();
     Wire2.beginTransmission(LightAPRSAdress);
     if(Wire2.endTransmission() == 0) available = true;
-    return {init_m, available, false, false}; //for now
+    return {init_m, available, init_m && available, init_m && available}; //for now
 }
 
 error_t PowerCheckHardware::deInit(){
@@ -616,7 +695,25 @@ error_t PowerCheckHardware::deInit(){
 }
 
 void PowerCheckHardware::printReport(){
-    
+    Serial.println("Version: Hardware");
+    Serial.print("Initialized: ");
+    Serial.println(init_m? "yes" : "no");
+    Serial.print("Volatge - ");
+    Serial.print(getVoltage());
+    Serial.println("V");
+}
+
+error_t PowerCheckHardware::updateReadings(){
+    Wire2.beginTransmission(LightAPRSAdress);
+    Wire2.write(LightAPRSADCCommand);
+    if(Wire2.endTransmission()!=0) return PayloadOS::ERROR;
+    delayMicroseconds(I2C_DelayTime_us);
+    Wire2.requestFrom(LightAPRSAdress, sizeof(float));
+    delayMicroseconds(I2C_DelayTime_us);
+    float recived;
+    Wire2.readBytes((char*)&recived, sizeof(recived));
+    lastPower = static_cast<float_t>(recived);
+    return PayloadOS::GOOD;
 }
 
 //arm switch---------------------------------------------------

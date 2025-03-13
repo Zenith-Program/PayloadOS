@@ -46,7 +46,10 @@ namespace PayloadOS{
         };
 
         class TransmitterHardware : public Peripherals::TransmitterInterface{
+            bool init_m;
+            uint_t timeOfLastTransmission;
         public:
+            TransmitterHardware();
             error_t transmitString(const char*) override;
             bool available() override;
             error_t init() override;
@@ -65,7 +68,13 @@ namespace PayloadOS{
         };
 
         class Altimeter2Hardware : public Peripherals::AltimeterInterface{
+            bool init_m;
+            float_t lastAltitude_m;
+            float_t lastPressure_pa;
+            float_t lastTemperature_C;
+            uint_t lastReadingTime;
         public:
+            Altimeter2Hardware();
             float_t getAltitude_m() override;
             float_t getPressure_mBar() override;
             float_t getTemperature_K() override;
@@ -73,6 +82,9 @@ namespace PayloadOS{
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
             void printReport() override;
+
+        private:
+            error_t updateReadings();
         };
 
         class STEMnaut1Hardware : public Peripherals::IMUInterface{
@@ -131,6 +143,7 @@ namespace PayloadOS{
 
         class PowerCheckHardware : public Peripherals::PowerCheckInterface{
             bool init_m;
+            float_t lastPower;
         public:
             PowerCheckHardware();
             float_t getVoltage() override;
@@ -138,6 +151,8 @@ namespace PayloadOS{
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
             void printReport() override;
+        private:
+            error_t updateReadings();
         };
 
         class ArmSwitchHardware : public Peripherals::ArmSwitchInterface{
