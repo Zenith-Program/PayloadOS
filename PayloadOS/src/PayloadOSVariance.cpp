@@ -37,14 +37,6 @@ float_t RunningVariance::getVariance(uint_t numOutliers){
     uint_t end = size;
     if(!filled) end = static_cast<uint_t>(current - values.data());
     sort(0, end);
-    //debug---------------------
-    for(uint_t i=0; i<end; i++)
-        Serial.printf("%f, ", values[i]);
-    Serial.println();
-    for(uint_t i=0+numOutliers; i<end-numOutliers; i++)
-        Serial.printf("%f, ", values[i]);
-    Serial.println();
-    //--------------------------
     if(2*numOutliers >= end) numOutliers = 0;
     float_t mean = 0;
     for(uint_t i=0+numOutliers; i<end - numOutliers; i++)
@@ -71,4 +63,16 @@ void RunningVariance::sort(uint_t start, uint_t end){
         sorted[i] = sorted[smallest];
         sorted[smallest] = temp;
     }
+}
+
+
+//altimeter selectors
+RunningVariance* AltimeterVariances::getAltimeter1(){
+    static RunningVariance instance(1); 
+    return &instance;
+}
+
+RunningVariance* AltimeterVariances::getAltimeter2(){
+    static RunningVariance instance(1); 
+    return &instance;
 }

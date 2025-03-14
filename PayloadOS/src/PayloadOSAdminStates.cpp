@@ -3,6 +3,7 @@
 #include "PayloadOSPeripheralSelector.h"
 #include "PayloadOSModelSimProcess.h"
 #include "PayloadOSVariance.h"
+#include "PayloadOSSD.h"
 
 using namespace PayloadOS;
 using namespace State;
@@ -17,6 +18,7 @@ void Debug::init(){
     Serial.println("Entered Debug Mode");
     exit = false;
     var.clear();
+    FlightData::TelemetryLog::get()->openForWrite();
 }
 void Debug::loop(){
     float_t altitude = Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getAltitude_ft();
@@ -26,9 +28,11 @@ void Debug::loop(){
     float_t variance = var.getStandardDeviation();
     Serial.print("var: ");
     Serial.println(variance);
+    FlightData::TelemetryLog::get()->logLine();
 }
 void Debug::end(){
     Serial.println("Exited Debug Mode");
+    FlightData::TelemetryLog::get()->close();
 }
 State::States Debug::next(){
     if(exit) return States::Standby;
@@ -59,12 +63,13 @@ bool Standby::debug = false;
 void Standby::init(){
     debug = false;
     armed = false;
+    Serial.println("Standby");
 }
 void Standby::loop(){
-
+    //NOP
 }
 void Standby::end(){
-
+    //NOP
 }
 State::States Standby::next(){
     if(debug) return States::Debug;
@@ -79,7 +84,11 @@ const Interpreter::CommandList* Standby::getCommands(){
     static constexpr auto arr = std::array{
         CMD{"debug", "", toDebug},
         CMD{"arm", "", softwareArm},
-        CMD{"disarm", "", softwareDisarm}
+        CMD{"disarm", "", softwareDisarm},
+        CMD{"telemetryFileName", "s", FlightData::TelemetryLog::setName_CMD},
+        CMD{"telemetryFile", "", FlightData::TelemetryLog::displayFile_CMD},
+        CMD{"telemetryFlushPeriod", "u", FlightData::TelemetryLog::setFlush_CMD},
+        CMD{"initSD", "", FlightData::TelemetryLog::init_CMD}
     };
     static const Interpreter::CommandList list(&arr.front(), arr.size());
     return &list;
@@ -101,14 +110,16 @@ void Standby::softwareDisarm(const Interpreter::Token*){
 
 //state table implementation-------------------
 void Startup::init(){
-    Serial.println("Starting Up...");
-    if(initAllPeripherals() == PayloadOS::ERROR) State::ProgramState::get()->initiateFailure();
-}
-void Startup::loop(){
     //NOP
 }
-void Startup::end(){
+void Startup::loop(){
+    Serial.println("Starting Up...");
+    initAllPeripherals();
+    FlightData::TelemetryLog::get()->init();
     Serial.println("Startup Complete");
+}
+void Startup::end(){
+    //NOP
 }
 State::States Startup::next(){
     return States::Standby;

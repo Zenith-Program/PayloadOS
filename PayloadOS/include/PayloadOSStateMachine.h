@@ -76,6 +76,9 @@ namespace PayloadOS{
         };
 
         class Armed{
+            static uint_t varianceSize;
+            static float_t launchThreshold;
+            static bool armed;
         public:
             static void init();
             static void loop();
@@ -83,6 +86,14 @@ namespace PayloadOS{
             static State::States next();
             static const Interpreter::CommandList* getCommands();
             //commands
+            static void softwareDisarm(const Interpreter::Token*);
+            static void setVarSize(const Interpreter::Token*);
+            static void setThreshold(const Interpreter::Token*);
+            static void getVarSize(const Interpreter::Token*);
+            static void getThreshold(const Interpreter::Token*);
+
+            static constexpr uint_t defaultVarianceSize = 16;
+            static constexpr float_t defaultLaunchThreshold = 10;
 
         //helpers
         private:
@@ -90,6 +101,7 @@ namespace PayloadOS{
         };
 
         class Flight{
+            static float_t landingThreshold;
         public:
             static void init();
             static void loop();
@@ -97,6 +109,8 @@ namespace PayloadOS{
             static State::States next();
             static const Interpreter::CommandList* getCommands();
             //commands
+
+            static constexpr float_t defaultLandingThreshold = 7.5;
     
         //helpers
         private:

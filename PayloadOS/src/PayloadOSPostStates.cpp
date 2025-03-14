@@ -1,11 +1,12 @@
 #include "PayloadOSStateMachine.h"
+#include <Arduino.h>
 
 using namespace PayloadOS;
 using namespace State;
 
 //Processing State---------------------------------------------
 void Processing::init(){
-
+    Serial.println("Processing");
 }
 void Processing::loop(){
 
