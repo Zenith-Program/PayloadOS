@@ -41,20 +41,20 @@ const Interpreter::CommandList* Transmit::getCommands(){
     return &list;
 }
 
-//RRS State----------------------------------------------------
-void RRS::init(){
+//Recovery State----------------------------------------------------
+void Recovery::init(){
 
 }
-void RRS::loop(){
+void Recovery::loop(){
 
 }
-void RRS::end(){
+void Recovery::end(){
 
 }
-State::States RRS::next(){
-    return States::Transmit; //for now
+State::States Recovery::next(){
+    return States::Recovery; //for now
 }
-const Interpreter::CommandList* RRS::getCommands(){
+const Interpreter::CommandList* Recovery::getCommands(){
     static constexpr auto arr = std::array<Interpreter::Command, 0>{};
     static const Interpreter::CommandList list(&arr.front(), arr.size());
     return &list;

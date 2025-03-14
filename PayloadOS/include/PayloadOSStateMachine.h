@@ -7,7 +7,7 @@
 namespace PayloadOS{
     namespace State{
         enum class States : uint_t{
-            Fail, Debug, Startup, Standby, Armed, Boost, Coast, Drogue, Main, Landed, Processing, Transmit, RRS, SENTINAL_COUNT
+            Fail, Debug, Startup, Standby, Armed, Flight, Processing, Transmit, Recovery, SENTINAL_COUNT
         };
         #define PayloadOS_NumberOfStates static_cast<std::size_t>(States::SENTINAL_COUNT)
 
@@ -89,7 +89,7 @@ namespace PayloadOS{
 
         };
 
-        class Boost{
+        class Flight{
         public:
             static void init();
             static void loop();
@@ -97,66 +97,10 @@ namespace PayloadOS{
             static State::States next();
             static const Interpreter::CommandList* getCommands();
             //commands
-
+    
         //helpers
         private:
-
-        };
-
-        class Coast{
-        public:
-            static void init();
-            static void loop();
-            static void end();
-            static State::States next();
-            static const Interpreter::CommandList* getCommands();
-            //commands
-
-        //helpers
-        private:
-
-        };
-
-        class Drogue{
-        public:
-            static void init();
-            static void loop();
-            static void end();
-            static State::States next();
-            static const Interpreter::CommandList* getCommands();
-            //commands
-
-        //helpers
-        private:
-
-        };
-
-        class Main{
-        public:
-            static void init();
-            static void loop();
-            static void end();
-            static State::States next();
-            static const Interpreter::CommandList* getCommands();
-            //commands
-
-        //helpers
-        private:
-
-        };
-
-        class Landed{
-        public:
-            static void init();
-            static void loop();
-            static void end();
-            static State::States next();
-            static const Interpreter::CommandList* getCommands();
-            //commands
-
-        //helpers
-        private:
-
+    
         };
 
         class Processing{
@@ -186,7 +130,7 @@ namespace PayloadOS{
         private:
         };
 
-        class RRS{
+        class Recovery{
         public:
             static void init();
             static void loop();
@@ -260,14 +204,10 @@ namespace PayloadOS{
                     {"Startup",     Startup::init,      Startup::loop,      Startup::end,       Startup::next,      Startup::getCommands()},    //Startup
                     {"Standby",     Standby::init,      Standby::loop,      Standby::end,       Standby::next,      Standby::getCommands()},    //Standby
                     {"Armed",       Armed::init,        Armed::loop,        Armed::end,         Armed::next,        Armed::getCommands()},      //Armed
-                    {"Boost",       Boost::init,        Boost::loop,        Boost::end,         Boost::next,        Boost::getCommands()},      //Boost
-                    {"Coast",       Coast::init,        Coast::loop,        Coast::end,         Coast::next,        Coast::getCommands()},      //Coast
-                    {"Drogue",      Drogue::init,       Drogue::loop,       Drogue::end,        Drogue::next,       Drogue::getCommands()},     //Drogue
-                    {"Main",        Main::init,         Main::loop,         Main::end,          Main::next,         Main::getCommands()},       //Main
-                    {"Landed",      Landed::init,       Landed::loop,       Landed::end,        Landed::next,       Landed::getCommands()},     //Landed
+                    {"Flight",      Flight::init,       Flight::loop,       Flight::end,        Flight::next,       Flight::getCommands()},     //Flight
                     {"Processing",  Processing::init,   Processing::loop,   Processing::end,    Processing::next,   Processing::getCommands()}, //Processing
                     {"Transmit",    Transmit::init,     Transmit::loop,     Transmit::end,      Transmit::next,     Transmit::getCommands()},   //Transmit
-                    {"RRS",         RRS::init,          RRS::loop,          RRS::end,           RRS::next,          RRS::getCommands()},        //RRS
+                    {"Recovery",    Recovery::init,     Recovery::loop,     Recovery::end,      Recovery::next,     Recovery::getCommands()},   //RRS
                 }};
             }
             //---------------------------------------------------------------------------------

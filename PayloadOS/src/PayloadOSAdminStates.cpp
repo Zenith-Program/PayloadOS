@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include "PayloadOSPeripheralSelector.h"
 #include "PayloadOSModelSimProcess.h"
+#include "PayloadOSVariance.h"
 
 using namespace PayloadOS;
 using namespace State;
@@ -10,16 +11,21 @@ using namespace State;
 
 //global---------------------------------------
 bool Debug::exit = false;
+FlightData::RunningVariance var(5);
 //state table implementation-------------------
 void Debug::init(){
     Serial.println("Entered Debug Mode");
     exit = false;
-    
-
+    var.clear();
 }
 void Debug::loop(){
-    // do nothing
-    Serial.println(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getAltitude_ft());
+    float_t altitude = Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getAltitude_ft();
+    var.push(altitude);
+    Serial.print("alt: ");
+    Serial.println(altitude);
+    float_t variance = var.getStandardDeviation();
+    Serial.print("var: ");
+    Serial.println(variance);
 }
 void Debug::end(){
     Serial.println("Exited Debug Mode");
