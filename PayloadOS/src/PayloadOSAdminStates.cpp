@@ -88,7 +88,9 @@ const Interpreter::CommandList* Standby::getCommands(){
         CMD{"telemetryFileName", "s", FlightData::TelemetryLog::setName_CMD},
         CMD{"telemetryFile", "", FlightData::TelemetryLog::displayFile_CMD},
         CMD{"telemetryFlushPeriod", "u", FlightData::TelemetryLog::setFlush_CMD},
-        CMD{"initSD", "", FlightData::TelemetryLog::init_CMD}
+        CMD{"initSD", "", FlightData::TelemetryLog::init_CMD},
+        CMD{"zeroAltimeter1", "", FlightData::AltimeterVariances::zeroAltimeter1},
+        CMD{"zeroAltimeter2", "", FlightData::AltimeterVariances::zeroAltimeter2}
     };
     static const Interpreter::CommandList list(&arr.front(), arr.size());
     return &list;

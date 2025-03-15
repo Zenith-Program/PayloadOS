@@ -72,6 +72,7 @@
  * PayloadOS_CommandBufferSize - specifies the size of the buffer that stores command names durring interpretation. This limits the size of commands.
  * PayloadOS_InternalCommandBufferSize - specifies the size of the buffer that internal OS commands use to copy string their arguments to. This limits the size of strings that can be passed to them.
  * PayloadOS_LogFileNameSize - specifies the size of the buffer that stores the name of the log file
+ * PayloadOS_LogParseBufferSize - specifies the size of the buffer that is used to perse SD data
  * PayloadOS_SimulationFileNameSize - specifies the size of the buffer that stores the name of the simulation data file
  * PayloadOS_VarianceBufferSize - specifies the size of the buffer used by running variance. The running variance may have at most this length
 */
@@ -83,6 +84,7 @@
 #define PayloadOS_CommandBufferSize 64
 #define PayloadOS_InternalCommandBufferSize 64
 #define PayloadOS_LogFileNameSize 64
+#define PayloadOS_LogParseBufferSize 256
 #define PayloadOS_SimulationFileNameSize 64
 #define PayloadOS_VarianceBufferSize 512
 
@@ -113,7 +115,7 @@
 */
 
 #define PayloadOS_ConsoleBaudRate 115200
-#define PayloadOS_DefaultSamplePeriod 1000000
+#define PayloadOS_DefaultSamplePeriod 125000
 
 /*
 */

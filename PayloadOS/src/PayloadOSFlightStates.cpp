@@ -1,6 +1,7 @@
 #include "PayloadOSStateMachine.h"
 #include "PayloadOSPeripheralSelector.h"
 #include "PayloadOSVariance.h"
+#include "PayloadOSSD.h"
 #include <Arduino.h>
 
 using namespace PayloadOS;
@@ -16,6 +17,7 @@ void Armed::init(){
     FlightData::AltimeterVariances::getAltimeter1()->clear();
     FlightData::AltimeterVariances::getAltimeter2()->setSize(varianceSize);
     FlightData::AltimeterVariances::getAltimeter2()->clear();
+    FlightData::TelemetryLog::get()->openForWrite();
     Serial.println("The payload is armed");
 }
 void Armed::loop(){
@@ -23,6 +25,7 @@ void Armed::loop(){
     float_t altimeter2Reading = Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getAltitude_ft();
     FlightData::AltimeterVariances::getAltimeter1()->push(altimeter1Reading);
     FlightData::AltimeterVariances::getAltimeter2()->push(altimeter2Reading);
+    FlightData::TelemetryLog::get()->logLine();
 }
 void Armed::end(){
     //NOP
@@ -73,6 +76,7 @@ void Flight::loop(){
     float_t altimeter2Reading = Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getAltitude_ft();
     FlightData::AltimeterVariances::getAltimeter1()->push(altimeter1Reading);
     FlightData::AltimeterVariances::getAltimeter2()->push(altimeter2Reading);
+    FlightData::TelemetryLog::get()->logLine();
 }
 void Flight::end(){
 

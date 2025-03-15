@@ -65,6 +65,12 @@ static_assert(false, "PayloadOS_SimulationFileNameSize must be defined in file P
 static_assert(PayloadOS_SimulationFileNameSize>0, "The buffer size defined by PayloadOS_SimulationFileNameSize must be positive");
 #endif
 
+#ifndef PayloadOS_LogParseBufferSize
+static_assert(false, "PayloadOS_PayloadOS_LogParseBufferSize must be defined in file PayloadOS.cfg.h");
+#else
+static_assert(PayloadOS_LogParseBufferSize>0, "The buffer size defined by PayloadOS_LogParseBufferSize must be positive");
+#endif
+
 #ifndef PayloadOS_VarianceBufferSize
 static_assert(false, "PayloadOS_VarianceBufferSize must be defined in file PayloadOS.cfg.h");
 #else

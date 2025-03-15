@@ -148,7 +148,7 @@ ModelSim* ModelSim::get(){
 }
 
 
-ModelSim::ModelSim() : state(SimStates::Inactive), period(1000000){ //1s default clk
+ModelSim::ModelSim() : state(SimStates::Inactive), period(50000){ //1s default clk
 
 }
 //helpers----------------------------------------------------------------------

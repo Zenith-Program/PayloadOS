@@ -18,7 +18,7 @@ using namespace FlightData;
 #define Print_NEWLINE Serial.println()
 #define CHECK_EOF if(!file.available()) {telemetry.endOfFile = true; return PayloadOS::GOOD;}
 
-TelemetryLog::TelemetryLog() : fileName(""), flushPeriod(1), flushCount(0), state(SDStates::None) {} 
+TelemetryLog::TelemetryLog() : fileName(""), flushPeriod(4), flushCount(0), state(SDStates::None) {} 
 
 error_t TelemetryLog::init(){
     if(sd.begin(SD_CONFIG)) return PayloadOS::GOOD;
@@ -74,37 +74,27 @@ error_t TelemetryLog::setFileName(const char* newName){
 //read
 error_t TelemetryLog::readLine(TelemetryData& telemetry){
     if(!file.isOpen() || !file || state != SDStates::Read) return PayloadOS::ERROR;
-    telemetry.endOfFile = false;
-    telemetry.time = file.parseInt();
-    CHECK_EOF;
-    telemetry.state = file.parseInt();
-    CHECK_EOF;
-    telemetry.altitude1 = file.parseFloat();
-    CHECK_EOF;
-    telemetry.altitude2 = file.parseFloat();
-    CHECK_EOF;
-    telemetry.pressure1 = file.parseFloat();
-    CHECK_EOF;
-    telemetry.pressure2 = file.parseFloat();
-    CHECK_EOF;
-    telemetry.temperature1 = file.parseFloat();
-    CHECK_EOF;
-    telemetry.temperature2 = file.parseFloat();
-    CHECK_EOF;
+    //Serial.print("z");
+    telemetry.endOfFile = getline();
+    //Serial.print("a");
+    telemetry.time = getUnsigned();
+    //Serial.print("b");
+    telemetry.state = getUnsigned();
+    telemetry.altitude1 = getFloat();
+    //Serial.print("c");
+    telemetry.altitude2 = getFloat();
+    telemetry.pressure1 = getFloat();
+    telemetry.pressure2 = getFloat();
+    telemetry.temperature1 = getFloat();
+    telemetry.temperature2 = getFloat();
     readIMU(telemetry, 0);
-    CHECK_EOF;
     readIMU(telemetry, 1);
-    CHECK_EOF;
     readIMU(telemetry, 2);
-    CHECK_EOF;
     readIMU(telemetry, 3);
-    CHECK_EOF;
     readIMU(telemetry, 4);
-    CHECK_EOF;
-    telemetry.power = file.parseFloat();
-    CHECK_EOF;
+    telemetry.power = getFloat();
     readGPS(telemetry);
-    CHECK_EOF;
+    //if(!file.available()) telemetry.endOfFile = true;
     return PayloadOS::GOOD;
 }
 
@@ -139,26 +129,26 @@ void TelemetryLog::readIMU(TelemetryData& telemetry, uint_t IMU){
         grav = &telemetry.grav0;
         break;
     }
-    accel->x = file.parseFloat();
-    accel->y = file.parseFloat();
-    accel->z = file.parseFloat();
+    accel->x = getFloat();
+    accel->y = getFloat();
+    accel->z = getFloat();
 
-    angular->x_rot = file.parseFloat();
-    angular->y_rot = file.parseFloat();
-    angular->z_rot = file.parseFloat();
+    angular->x_rot = getFloat();
+    angular->y_rot = getFloat();
+    angular->z_rot = getFloat();
 
-    grav->x = file.parseFloat();
-    grav->y = file.parseFloat();
-    grav->z = file.parseFloat();
+    grav->x = getFloat();
+    grav->y = getFloat();
+    grav->z = getFloat();
     
 }
 
 void TelemetryLog::readGPS(TelemetryData& telemetry){
-    telemetry.gps.position.x = file.parseFloat();
-    telemetry.gps.position.y = file.parseFloat();
-    telemetry.gps.altitude = file.parseFloat();
-    telemetry.gps.satalites = file.parseInt();
-    telemetry.gps.fixAge = file.parseInt();
+    telemetry.gps.position.x = getFloat();
+    telemetry.gps.position.y = getFloat();
+    telemetry.gps.altitude = getFloat();
+    telemetry.gps.satalites = getUnsigned();
+    telemetry.gps.fixAge = getUnsigned();
 }
 //write
 error_t TelemetryLog::logLine(){
@@ -287,6 +277,7 @@ void TelemetryLog::displayFile_CMD(const Interpreter::Token*){
         Serial.print(telemetry.power);
         Print_SPACE;
         printGPS(telemetry);
+        Print_SPACE;
         Print_NEWLINE;
     }
 }
@@ -363,3 +354,78 @@ void TelemetryLog::setFlush_CMD(const Interpreter::Token*args){
 void TelemetryLog::init_CMD(const Interpreter::Token*){
     get()->init();
 }
+
+//parsing
+
+bool TelemetryLog::getline(char delim){
+    char curr = file.read();
+    buffer[0] = curr;
+    uint_t i = 1;
+    while(i<PayloadOS_LogParseBufferSize && curr != delim && file.available()){
+        curr = file.read();
+        buffer[i] = curr;
+        i++;
+    }
+    pos = buffer;
+    return !file.available();
+}
+
+float_t TelemetryLog::getFloat(){
+    float_t value = 0;
+    removeWhitespace();
+    bool neg = false;
+    if(*pos == '-') {
+        neg = true;
+        pos++;
+    }
+    while(isNumeric(*pos)){
+        value*=10;
+        value += getDigit(*pos);
+        pos++;
+    }
+    if(*pos != '.') return (neg)? -value : value;
+    uint_t place = 1;
+    pos++;
+    while(isNumeric(*pos)){
+        value += negPow10(place) * getDigit(*pos);
+        pos++;
+    }
+    return (neg)? -value : value;
+}
+
+uint_t TelemetryLog::getUnsigned(){
+    uint_t value = 0;
+    removeWhitespace();
+    while(isNumeric(*pos)){
+        value*=10;
+        value += getDigit(*pos);
+        pos++;
+    }
+    return value;
+}
+
+bool TelemetryLog::isWhiteSpace(char c) {
+	if (c == ' ' || c == '\t' || c == '\r' || c == '\v' || c == '\f' || c == '\n') return true;
+	return false;
+}
+
+bool TelemetryLog::isNumeric(char c) {
+	if (c >= '0' && c <= '9') return true;
+	return false;
+}
+
+void TelemetryLog::removeWhitespace(){
+    while(isWhiteSpace(*pos)) pos++;
+}
+
+float_t TelemetryLog::negPow10(uint_t n){
+    float_t value = 1;
+    for(uint_t i = 0; i<n; i++)
+        value /= 10;
+    return value;
+}
+
+uint_t TelemetryLog::getDigit(char c){
+    return static_cast<uint_t>(c) - 0x30;
+}
+ 

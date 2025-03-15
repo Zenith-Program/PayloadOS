@@ -1,5 +1,6 @@
 #pragma once
 #include "PayloadOSGeneral.h"
+#include "PayloadOSConsoleInterpreter.h"
 #include <array>
 
 namespace PayloadOS{
@@ -22,9 +23,15 @@ namespace PayloadOS{
         };
 
         class AltimeterVariances{
+            static float_t zero1, zero2;
         public:
             static RunningVariance* getAltimeter1();
+            static void zeroAltimeter1(const Interpreter::Token*);
+            static uint_t getAltimeter1Zero();
+
             static RunningVariance* getAltimeter2();
+            static void zeroAltimeter2(const Interpreter::Token*);
+            static uint_t getAltimeter2Zero();
         };
     }
 }

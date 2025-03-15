@@ -27,11 +27,13 @@ namespace PayloadOS{
         
         class TelemetryLog{
             char fileName[PayloadOS_LogFileNameSize];
+            char buffer[PayloadOS_LogParseBufferSize];
             uint_t flushPeriod;
             uint_t flushCount;
             SDStates state;
             SdFat sd;
             FsFile file;
+            char* pos;
         public:
             //general
             error_t init();
@@ -56,6 +58,15 @@ namespace PayloadOS{
             void readGPS(TelemetryData&);
             static void printIMU(const TelemetryData&, uint_t);
             static void printGPS(const TelemetryData&);
+
+            bool getline(char='\n');
+            float_t getFloat();
+            uint_t getUnsigned();
+            void removeWhitespace();
+            static uint_t getDigit(char);
+            static bool isWhiteSpace(char);
+		    static bool isNumeric(char);
+            static float_t negPow10(uint_t);
         //singleton implementation
         public:
             static TelemetryLog* get();

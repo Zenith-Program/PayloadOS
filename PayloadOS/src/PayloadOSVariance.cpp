@@ -1,4 +1,5 @@
 #include "PayloadOSVariance.h"
+#include "PayloadOSPeripheralSelector.h"
 #include <algorithm>
 #include <Arduino.h>
 
@@ -76,3 +77,22 @@ RunningVariance* AltimeterVariances::getAltimeter2(){
     static RunningVariance instance(1); 
     return &instance;
 }
+
+void AltimeterVariances::zeroAltimeter1(const Interpreter::Token* args){
+    zero1 = Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getAltitude_ft();
+}
+
+uint_t AltimeterVariances::getAltimeter1Zero(){
+    return zero1;
+}
+
+void AltimeterVariances::zeroAltimeter2(const Interpreter::Token*){
+    zero2 = Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getAltitude_ft();
+}
+
+uint_t AltimeterVariances::getAltimeter2Zero(){
+    return zero2;
+}
+
+float_t AltimeterVariances::zero1 = 0;
+float_t AltimeterVariances::zero2 = 0;

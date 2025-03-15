@@ -131,13 +131,32 @@ namespace PayloadOS{
 
         };
 
+        /*
+        Temperature of the landing site
+        Apogee reached 
+        Battery check 
+        STEMnaut orientation 
+        time of landing 
+        Maximum velocity 
+        Landing velocity, g-forces
+        STEMnaut survivability 
+        */
+
+        struct TransmittedData{
+            float_t apogee, power, temperature, peakVelocity, landingVelocity, landingG, Orientation1, Orientation2, Orientation3, Orientation4, timeOfLanding;
+            bool survive1, survive2, survive3, survive4;
+        };
+
         class Transmit{
+            static TransmittedData data;
         public:
             static void init();
             static void loop();
             static void end();
             static State::States next();
             static const Interpreter::CommandList* getCommands();
+
+            static TransmittedData* getData();
             //commands
 
         //helpers
@@ -194,8 +213,8 @@ namespace PayloadOS{
             void resume();
             static void ClockISR();
             //internal command interface
-        private:
             uint_t getPeriod();
+        private:
             void changePeriod(uint_t);
 
         //singleton implementation
