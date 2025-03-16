@@ -84,7 +84,7 @@
 #define PayloadOS_CommandBufferSize 64
 #define PayloadOS_InternalCommandBufferSize 64
 #define PayloadOS_LogFileNameSize 64
-#define PayloadOS_LogParseBufferSize 256
+#define PayloadOS_LogParseBufferSize 1024
 #define PayloadOS_SimulationFileNameSize 64
 #define PayloadOS_VarianceBufferSize 512
 

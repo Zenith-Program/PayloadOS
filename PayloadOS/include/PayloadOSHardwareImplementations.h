@@ -88,6 +88,11 @@ namespace PayloadOS{
         };
 
         class STEMnaut1Hardware : public Peripherals::IMUInterface{
+            bool init_m;
+            BNO080 imu;
+            Peripherals::LinearVector acceleration;
+            Peripherals::RotationVector angularVelocity;
+            Peripherals::LinearVector gravity;
         public:
             Peripherals::LinearVector getAcceleration_m_s2() override;
             Peripherals::RotationVector getAngularVelocity_deg_s() override;
@@ -96,9 +101,18 @@ namespace PayloadOS{
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
             void printReport() override;
+        private:
+            bool updateReadings();
+            uint_t updateInitStatus();
+            static const char* getResetMeaning(uint_t);
         };
 
         class STEMnaut2Hardware : public Peripherals::IMUInterface{
+            bool init_m;
+            BNO080 imu;
+            Peripherals::LinearVector acceleration;
+            Peripherals::RotationVector angularVelocity;
+            Peripherals::LinearVector gravity;
         public:
             Peripherals::LinearVector getAcceleration_m_s2() override;
             Peripherals::RotationVector getAngularVelocity_deg_s() override;
@@ -107,9 +121,18 @@ namespace PayloadOS{
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
             void printReport() override;
+        private:
+            bool updateReadings();
+            uint_t updateInitStatus();
+            static const char* getResetMeaning(uint_t);
         };
 
         class STEMnaut3Hardware : public Peripherals::IMUInterface{
+            bool init_m;
+            BNO080 imu;
+            Peripherals::LinearVector acceleration;
+            Peripherals::RotationVector angularVelocity;
+            Peripherals::LinearVector gravity;
         public:
             Peripherals::LinearVector getAcceleration_m_s2() override;
             Peripherals::RotationVector getAngularVelocity_deg_s() override;
@@ -118,6 +141,10 @@ namespace PayloadOS{
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
             void printReport() override;
+        private:
+            bool updateReadings();
+            uint_t updateInitStatus();
+            static const char* getResetMeaning(uint_t);
         };
 
         class STEMnaut4Hardware : public Peripherals::IMUInterface{

@@ -44,9 +44,7 @@ void Processing::loop(){
     uint_t line = 0;
     while(FlightData::TelemetryLog::get()->readLine(telemetry) != PayloadOS::ERROR && !telemetry.endOfFile){
         //time of landing
-        if(telemetry.state == static_cast<uint_t>(States::Flight) && launchTime == 0) launchTime == telemetry.time;
-        Serial.println(telemetry.time);
-        Serial.println(launchTime);
+        if(telemetry.state == static_cast<uint_t>(States::Flight) && launchTime == 0) launchTime = telemetry.time;
         //apogee
         float_t altitude =  (telemetry.altitude1 - FlightData::AltimeterVariances::getAltimeter1Zero() + telemetry.altitude2 - FlightData::AltimeterVariances::getAltimeter2Zero())/2.0;
         if(altitude > apogee) apogee = altitude;
@@ -103,11 +101,10 @@ void Processing::loop(){
     data->Orientation2 = o2;
     data->Orientation3 = o3;
     data->Orientation4 = o4;
-    constexpr float_t ACCELERATION_TOLERANCE = 9 * 9.8 / FEET_TO_M;
-    data->survive1 = maxAccel1 < ACCELERATION_TOLERANCE;
-    data->survive2 = maxAccel2 < ACCELERATION_TOLERANCE;
-    data->survive3 = maxAccel3 < ACCELERATION_TOLERANCE;
-    data->survive4 = maxAccel4 < ACCELERATION_TOLERANCE;
+    data->survive1 = maxAccel1;
+    data->survive2 = maxAccel2;
+    data->survive3 = maxAccel3;
+    data->survive4 = maxAccel4;
 }
 void Processing::end(){
     //NOP
@@ -124,8 +121,58 @@ const Interpreter::CommandList* Processing::getCommands(){
 //Transmit State-----------------------------------------------
 void Transmit::init(){
     Serial.println("transmit");
+    currentStep = Transmissions::PayloadStatus;
 }
 void Transmit::loop(){
+    char transmission[50];
+    constexpr float_t ACCELERATION_TOLERANCE = 9 * 9.8 / FEET_TO_M;
+    TransmittedData* data = getData();
+    Transmissions nextStep = currentStep;
+    if(Peripherals::PeripheralSelector::get()->getTransmitter()->available()){
+        switch(currentStep){
+        case Transmissions::PayloadStatus:
+            sprintf(transmission, "Time: %.2fs, Temp: %.2fF, Power %.2fV\n", data->timeOfLanding, data->temperature, data->power);
+            Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
+            nextStep = Transmissions::FlightParameters;
+            break;
+        case Transmissions::FlightParameters:
+            sprintf(transmission, "Apogee: %.2fft, Max velocity: %.2fft/s\n", data->apogee, data->peakVelocity);
+            Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
+            nextStep = Transmissions::Landing;
+            break;
+        case Transmissions::Landing:
+            sprintf(transmission, "Landing velocity: %.2fft/s, g-force: %.2fg\n", data->landingVelocity, data->landingG);
+            Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
+            nextStep = Transmissions::STEMnaut1;
+            break;
+        case Transmissions::STEMnaut1:
+            sprintf(transmission, "STEMnaut1 g-force: %.2fg, Survived: %s\n", data->survive1 * FEET_TO_M / 9.8, (data->survive1 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
+            Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
+            nextStep = Transmissions::STEMnaut2;
+            break;
+        case Transmissions::STEMnaut2:
+            sprintf(transmission, "STEMnaut2 g-force: %.2fg, Survived: %s\n", data->survive2 * FEET_TO_M / 9.8, (data->survive2 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
+            Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
+            nextStep = Transmissions::STEMnaut3;
+            break;
+        case Transmissions::STEMnaut3:
+            sprintf(transmission, "STEMnaut3 g-force: %.2fg, Survived: %s\n", data->survive3 * FEET_TO_M / 9.8, (data->survive3 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
+            Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
+            nextStep = Transmissions::STEMnaut4;
+            break;
+        case Transmissions::STEMnaut4:
+            sprintf(transmission, "STEMnaut4 g-force: %.2fg, Survived: %s\n", data->survive4 * FEET_TO_M / 9.8, (data->survive4 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
+            Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
+            nextStep = Transmissions::DONE;
+            break;
+            default:
+            nextStep = Transmissions::DONE;
+            break;
+        }
+        currentStep = nextStep;
+    }
+    
+    /*
     TransmittedData* data = getData();
     Serial.println(data->apogee);
     Serial.println(data->landingG);
@@ -142,12 +189,14 @@ void Transmit::loop(){
     Serial.println(data->survive4);
     Serial.println(data->temperature);
     Serial.println(data->timeOfLanding);
+    */
 }
 void Transmit::end(){
 
 }
 State::States Transmit::next(){
-    return States::Recovery; //for now
+    if(currentStep == Transmissions::DONE) return States::Recovery;
+    return States::Transmit;
 }
 const Interpreter::CommandList* Transmit::getCommands(){
     static constexpr auto arr = std::array<Interpreter::Command, 0>{};
@@ -159,13 +208,14 @@ TransmittedData* Transmit::getData(){
     return &data;
 }
 TransmittedData Transmit::data = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+Transmissions Transmit::currentStep = Transmissions::PayloadStatus;
 
 //Recovery State----------------------------------------------------
 void Recovery::init(){
 
 }
 void Recovery::loop(){
-
+    //NOP
 }
 void Recovery::end(){
 

@@ -12,27 +12,33 @@ using namespace State;
 
 //global---------------------------------------
 bool Debug::exit = false;
-FlightData::RunningVariance var(5);
 //state table implementation-------------------
 void Debug::init(){
     Serial.println("Entered Debug Mode");
     exit = false;
-    var.clear();
-    FlightData::TelemetryLog::get()->openForWrite();
+    FlightData::AltimeterVariances::getAltimeter1()->setSize(8);
+    FlightData::AltimeterVariances::getAltimeter2()->setSize(8);
+    FlightData::AltimeterVariances::getAltimeter1()->clear();
+    FlightData::AltimeterVariances::getAltimeter2()->clear();
 }
 void Debug::loop(){
     float_t altitude = Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getAltitude_ft();
-    var.push(altitude);
-    Serial.print("alt: ");
+    float_t altitude2 = Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getAltitude_ft();
+    FlightData::AltimeterVariances::getAltimeter1()->push(altitude);
+    FlightData::AltimeterVariances::getAltimeter2()->push(altitude2);
+    Serial.print("alt1: ");
     Serial.println(altitude);
-    float_t variance = var.getStandardDeviation();
-    Serial.print("var: ");
+    Serial.print("alt2: ");
+    Serial.println(altitude2);
+    float_t variance = FlightData::AltimeterVariances::getAltimeter1()->getStandardDeviation();
+    float_t variance2 = FlightData::AltimeterVariances::getAltimeter1()->getStandardDeviation();
+    Serial.print("var1: ");
     Serial.println(variance);
-    FlightData::TelemetryLog::get()->logLine();
+    Serial.print("var2: ");
+    Serial.println(variance2);
 }
 void Debug::end(){
     Serial.println("Exited Debug Mode");
-    FlightData::TelemetryLog::get()->close();
 }
 State::States Debug::next(){
     if(exit) return States::Standby;

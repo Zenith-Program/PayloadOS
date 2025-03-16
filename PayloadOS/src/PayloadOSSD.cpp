@@ -74,14 +74,10 @@ error_t TelemetryLog::setFileName(const char* newName){
 //read
 error_t TelemetryLog::readLine(TelemetryData& telemetry){
     if(!file.isOpen() || !file || state != SDStates::Read) return PayloadOS::ERROR;
-    //Serial.print("z");
     telemetry.endOfFile = getline();
-    //Serial.print("a");
     telemetry.time = getUnsigned();
-    //Serial.print("b");
     telemetry.state = getUnsigned();
     telemetry.altitude1 = getFloat();
-    //Serial.print("c");
     telemetry.altitude2 = getFloat();
     telemetry.pressure1 = getFloat();
     telemetry.pressure2 = getFloat();
@@ -329,9 +325,9 @@ void TelemetryLog::printIMU(const TelemetryData& telemetry, uint_t IMU){
 
     Serial.print(grav->x);
     Print_SPACE;
-    Serial.print(grav->x);
+    Serial.print(grav->y);
     Print_SPACE;
-    Serial.print(grav->x);
+    Serial.print(grav->z);
 }
 
 void TelemetryLog::printGPS(const TelemetryData& telemetry){
@@ -378,6 +374,10 @@ float_t TelemetryLog::getFloat(){
         neg = true;
         pos++;
     }
+    else if(!isNumeric(*pos)){
+        while(!isWhiteSpace(*pos)) pos++;
+        return 0;
+    }
     while(isNumeric(*pos)){
         value*=10;
         value += getDigit(*pos);
@@ -389,6 +389,7 @@ float_t TelemetryLog::getFloat(){
     while(isNumeric(*pos)){
         value += negPow10(place) * getDigit(*pos);
         pos++;
+        place++;
     }
     return (neg)? -value : value;
 }
@@ -426,6 +427,6 @@ float_t TelemetryLog::negPow10(uint_t n){
 }
 
 uint_t TelemetryLog::getDigit(char c){
-    return static_cast<uint_t>(c) - 0x30;
+    return c - '0';
 }
  

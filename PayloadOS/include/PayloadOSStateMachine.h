@@ -144,11 +144,16 @@ namespace PayloadOS{
 
         struct TransmittedData{
             float_t apogee, power, temperature, peakVelocity, landingVelocity, landingG, Orientation1, Orientation2, Orientation3, Orientation4, timeOfLanding;
-            bool survive1, survive2, survive3, survive4;
+            float_t survive1, survive2, survive3, survive4;
+        };
+
+        enum class Transmissions{
+            PayloadStatus, FlightParameters, Landing, STEMnaut1, STEMnaut2, STEMnaut3, STEMnaut4, DONE
         };
 
         class Transmit{
             static TransmittedData data;
+            static Transmissions currentStep;
         public:
             static void init();
             static void loop();
