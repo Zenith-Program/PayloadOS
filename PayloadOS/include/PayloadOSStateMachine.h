@@ -174,6 +174,12 @@ namespace PayloadOS{
         };
 
         class Transmit{
+<<<<<<< Updated upstream
+=======
+            static char transmission[50];
+            static TransmittedData data;
+            static Transmissions currentStep;
+>>>>>>> Stashed changes
         public:
             static void init();
             static void loop();

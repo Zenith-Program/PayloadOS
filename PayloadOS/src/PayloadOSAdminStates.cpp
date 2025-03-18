@@ -14,8 +14,16 @@ bool Debug::exit = false;
 void Debug::init(){
     Serial.println("Entered Debug Mode");
     exit = false;
+<<<<<<< Updated upstream
     
 
+=======
+    FlightData::AltimeterVariances::getAltimeter1()->setSize(8);
+    FlightData::AltimeterVariances::getAltimeter2()->setSize(8);
+    FlightData::AltimeterVariances::getAltimeter1()->clear();
+    FlightData::AltimeterVariances::getAltimeter2()->clear();
+    Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString("test message");
+>>>>>>> Stashed changes
 }
 void Debug::loop(){
     // do nothing

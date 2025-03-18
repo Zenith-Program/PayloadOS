@@ -626,15 +626,17 @@ error_t TransmitterHardware::transmitString(const char* message){
     if(!available()) return PayloadOS::ERROR;
     Wire2.beginTransmission(LightAPRSAdress);
     Wire2.write(LightAPRSTransmitCommand);
-    for(uint_t i=0; i<MAXIMUM_MESSAGE_SIZE && *message; i++)
+    uint_t i;
+    for(i=0; i<MAXIMUM_MESSAGE_SIZE-1 && *message; i++)
         Wire2.write(*message++);
+    if(i == MAXIMUM_MESSAGE_SIZE-1) Wire2.write('\n');
     if(Wire2.endTransmission() != 0) return PayloadOS::ERROR;
     timeOfLastTransmission = millis();
     return PayloadOS::GOOD;
 }
 
 bool TransmitterHardware::available(){
-    constexpr uint_t MINIMUM_WAIT_TIME_ms = 2000;
+    constexpr uint_t MINIMUM_WAIT_TIME_ms = 8000;
     if(millis() - timeOfLastTransmission > MINIMUM_WAIT_TIME_ms) return init_m;
     return false;
 }
