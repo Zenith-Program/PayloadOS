@@ -24,6 +24,9 @@ void Debug::init(){
     FlightData::AltimeterVariances::getAltimeter2()->clear();
     Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString("test message");
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes

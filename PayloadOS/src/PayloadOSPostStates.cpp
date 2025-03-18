@@ -30,8 +30,11 @@ void Transmit::init(){
 void Transmit::loop(){
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
     constexpr float_t ACCELERATION_TOLERANCE = 9 * 9.8 / FEET_TO_M;

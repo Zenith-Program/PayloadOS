@@ -176,7 +176,10 @@ namespace PayloadOS{
         class Transmit{
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
             static char transmission[50];
