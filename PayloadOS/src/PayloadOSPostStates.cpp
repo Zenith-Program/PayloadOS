@@ -29,8 +29,11 @@ void Transmit::init(){
 }
 void Transmit::loop(){
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
 =======
+=======
+>>>>>>> Stashed changes
     constexpr float_t ACCELERATION_TOLERANCE = 9 * 9.8 / FEET_TO_M;
     TransmittedData* data = getData();
     Transmissions nextStep = currentStep;
