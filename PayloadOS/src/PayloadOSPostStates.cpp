@@ -2,6 +2,7 @@
 #include "PayloadOSSD.h"
 #include "PayloadOSVariance.h"
 #include <Arduino.h>
+#include <cstdio>
 
 using namespace PayloadOS;
 using namespace State;
@@ -131,37 +132,37 @@ void Transmit::loop(){
     if(Peripherals::PeripheralSelector::get()->getTransmitter()->available()){
         switch(currentStep){
         case Transmissions::PayloadStatus:
-            sprintf(transmission, "Time: %.2fs, Temp: %.2fF, Power %.2fV\n", data->timeOfLanding, data->temperature, data->power);
+            std::sprintf(transmission, "Time: %.2fs, Temp: %.2fF, Power %.2fV\n", data->timeOfLanding, data->temperature, data->power);
             Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
             nextStep = Transmissions::FlightParameters;
             break;
         case Transmissions::FlightParameters:
-            sprintf(transmission, "Apogee: %.2fft, Max velocity: %.2fft/s\n", data->apogee, data->peakVelocity);
+            std::sprintf(transmission, "Apogee: %.2fft, Max velocity: %.2fft/s\n", data->apogee, data->peakVelocity);
             Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
             nextStep = Transmissions::Landing;
             break;
         case Transmissions::Landing:
-            sprintf(transmission, "Landing velocity: %.2fft/s, g-force: %.2fg\n", data->landingVelocity, data->landingG);
+            std::sprintf(transmission, "Landing velocity: %.2fft/s, g-force: %.2fg\n", data->landingVelocity, data->landingG);
             Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
             nextStep = Transmissions::STEMnaut1;
             break;
         case Transmissions::STEMnaut1:
-            sprintf(transmission, "STEMnaut1 g-force: %.2fg, Survived: %s\n", data->survive1 * FEET_TO_M / 9.8, (data->survive1 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
+            std::sprintf(transmission, "STEMnaut1 g-force: %.2fg, Survived: %s\n", data->survive1 * FEET_TO_M / 9.8, (data->survive1 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
             Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
             nextStep = Transmissions::STEMnaut2;
             break;
         case Transmissions::STEMnaut2:
-            sprintf(transmission, "STEMnaut2 g-force: %.2fg, Survived: %s\n", data->survive2 * FEET_TO_M / 9.8, (data->survive2 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
+            std::sprintf(transmission, "STEMnaut2 g-force: %.2fg, Survived: %s\n", data->survive2 * FEET_TO_M / 9.8, (data->survive2 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
             Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
             nextStep = Transmissions::STEMnaut3;
             break;
         case Transmissions::STEMnaut3:
-            sprintf(transmission, "STEMnaut3 g-force: %.2fg, Survived: %s\n", data->survive3 * FEET_TO_M / 9.8, (data->survive3 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
+            std::sprintf(transmission, "STEMnaut3 g-force: %.2fg, Survived: %s\n", data->survive3 * FEET_TO_M / 9.8, (data->survive3 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
             Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
             nextStep = Transmissions::STEMnaut4;
             break;
         case Transmissions::STEMnaut4:
-            sprintf(transmission, "STEMnaut4 g-force: %.2fg, Survived: %s\n", data->survive4 * FEET_TO_M / 9.8, (data->survive4 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
+            std::sprintf(transmission, "STEMnaut4 g-force: %.2fg, Survived: %s\n", data->survive4 * FEET_TO_M / 9.8, (data->survive4 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
             Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
             nextStep = Transmissions::DONE;
             break;
