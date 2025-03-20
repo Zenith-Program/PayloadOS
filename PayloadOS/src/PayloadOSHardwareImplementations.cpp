@@ -19,11 +19,12 @@ using namespace PayloadOS::Hardware;
 #define LightAPRSGPSCommand 0x04
 #define LightAPRSTransmitCommand 0x05
 #define LightAPRSReadyCommand 0x06
-#define LightAPRSClearCommand 0x07
+#define LightAPRSBeginTransmissionCommand 0x07
 
 #define I2C_DelayTime_us 5
 
-#define TX_MaxSize 256
+#define LightAPRS_TX_MaxSize 256
+#define LightAPRS_ChunckSize 32
 
 #define FalseStatus {0,0,0,0}
 #define EmptyVector {0,0,0}
@@ -935,11 +936,28 @@ error_t Altimeter2Hardware::updateReadings(){
 }
 
 //Transmitter--------------------------------------------------
-TransmitterHardware::TransmitterHardware() : init_m(false), timeOfLastTransmission(millis()){}
+TransmitterHardware::TransmitterHardware() : init_m(false){}
+
 error_t TransmitterHardware::transmitString(const char* message){
-    const char* current = message;
-    while(current != nullptr && *current != '\0') current = transmitChunck(current);
-    if(current == nullptr) return PayloadOS::ERROR;
+    //initiaite coms
+    Wire2.beginTransmission(LightAPRSAdress);
+    Wire2.write(LightAPRSBeginTransmissionCommand);
+    if(Wire2.endTransmission() != 0) return PayloadOS::ERROR;
+    //transmit chunks
+    const char* current;
+    for(current = message; current < message + LightAPRS_TX_MaxSize - 1 && *current != '\0';){
+        Wire2.beginTransmission(LightAPRSAdress);
+        Wire2.write(LightAPRSSendSectionCommand);
+        for(const char* startOfChunck = current; current < message + LightAPRS_TX_MaxSize - 1 && current < startOfChunck + LightAPRS_ChunckSize && current != '\0'; current++)
+            Wire2.write(*current);
+        if(Wire2.endTransmission(LightAPRSAdress) != 0) return PayloadOS::ERROR;
+    }
+    //null terminate
+    Wire2.beginTransmission(LightAPRSAdress);
+    Wire2.write(LightAPRSSendSectionCommand);
+    Wire2.write('\0');
+    if(Wire2.endTransmission() != 0) return PayloadOS::ERROR;
+    //end coms
     Wire2.beginTransmission(LightAPRSAdress);
     Wire2.write(LightAPRSTransmitCommand);
     if(Wire2.endTransmission() != 0) return PayloadOS::ERROR;

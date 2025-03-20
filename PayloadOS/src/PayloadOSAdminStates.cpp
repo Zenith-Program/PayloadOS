@@ -99,7 +99,7 @@ const Interpreter::CommandList* Standby::getCommands(){
         CMD{"zeroAltimeter1", "", FlightData::AltimeterVariances::zeroAltimeter1},
         CMD{"zeroAltimeter2", "", FlightData::AltimeterVariances::zeroAltimeter2},
         CMD{"flightParameters", "", FlightData::FlightParameters::print_c},
-        CMD{"setFlightParameter", "wf", FlightData::FlightParameters::setParam_c}
+        CMD{"setFlightParameter", "sf", FlightData::FlightParameters::setParam_c}
     };
     static const Interpreter::CommandList list(&arr.front(), arr.size());
     return &list;

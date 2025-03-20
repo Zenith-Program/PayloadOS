@@ -79,7 +79,7 @@ void FlightParameters::print_c(const Interpreter::Token*){
 void FlightParameters::setParam_c(const Interpreter::Token* args){
     char nameBuffer[64];
     args[0].copyStringData(nameBuffer, 64);
-    float_t newValue = args[0].getFloatData();
+    float_t newValue = args[1].getFloatData();
     FlightParameter* param = get()->getDataWithName(nameBuffer);
     if(param == nullptr){
         Serial.println("Invalid flight parameter name");
