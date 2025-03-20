@@ -4,6 +4,7 @@
 #include "PayloadOSModelSimProcess.h"
 #include "PayloadOSVariance.h"
 #include "PayloadOSSD.h"
+#include "PayloadOSFlightParameters.h"
 
 using namespace PayloadOS;
 using namespace State;
@@ -96,7 +97,9 @@ const Interpreter::CommandList* Standby::getCommands(){
         CMD{"telemetryFlushPeriod", "u", FlightData::TelemetryLog::setFlush_CMD},
         CMD{"initSD", "", FlightData::TelemetryLog::init_CMD},
         CMD{"zeroAltimeter1", "", FlightData::AltimeterVariances::zeroAltimeter1},
-        CMD{"zeroAltimeter2", "", FlightData::AltimeterVariances::zeroAltimeter2}
+        CMD{"zeroAltimeter2", "", FlightData::AltimeterVariances::zeroAltimeter2},
+        CMD{"flightParameters", "", FlightData::FlightParameters::print_c},
+        CMD{"setFlightParameter", "wf", FlightData::FlightParameters::setParam_c}
     };
     static const Interpreter::CommandList list(&arr.front(), arr.size());
     return &list;

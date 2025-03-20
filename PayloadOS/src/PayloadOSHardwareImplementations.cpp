@@ -943,6 +943,7 @@ error_t TransmitterHardware::transmitString(const char* message){
     Wire2.beginTransmission(LightAPRSAdress);
     Wire2.write(LightAPRSTransmitCommand);
     if(Wire2.endTransmission() != 0) return PayloadOS::ERROR;
+    return PayloadOS::GOOD;
 }
 
 bool TransmitterHardware::available(){
