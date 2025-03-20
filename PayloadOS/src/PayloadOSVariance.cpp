@@ -78,7 +78,7 @@ RunningVariance* AltimeterVariances::getAltimeter2(){
     return &instance;
 }
 
-void AltimeterVariances::zeroAltimeter1(const Interpreter::Token* args){
+void AltimeterVariances::zeroAltimeter1(const Interpreter::Token*){
     zero1 = Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getAltitude_ft();
 }
 

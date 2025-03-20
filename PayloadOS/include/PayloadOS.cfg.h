@@ -52,7 +52,7 @@
 
 #undef PayloadOS_altimeter
 #undef PayloadOS_IMU
-#undef PayloadOS_lightAPRS_Tx
+//#undef PayloadOS_lightAPRS_Tx
 #undef PayloadOS_lightAPRS_altimeter
 #undef PayloadOS_lightAPRS_GPS
 #undef PayloadOS_powerCheck

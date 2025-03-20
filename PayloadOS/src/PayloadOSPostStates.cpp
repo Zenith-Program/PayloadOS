@@ -132,37 +132,38 @@ void Transmit::loop(){
     if(Peripherals::PeripheralSelector::get()->getTransmitter()->available()){
         switch(currentStep){
         case Transmissions::PayloadStatus:
-            std::sprintf(transmission, "Time: %.2fs, Temp: %.2fF, Power %.2fV\n", data->timeOfLanding, data->temperature, data->power);
-            Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
+            std::snprintf(transmission, sizeof(transmission), "Apogee: 1ft, Max: ft/s\n");
+            Serial.println((Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::ERROR)? "Err" : "no"); //debug
             nextStep = Transmissions::FlightParameters;
             break;
         case Transmissions::FlightParameters:
-            std::sprintf(transmission, "Apogee: %.2fft, Max velocity: %.2fft/s\n", data->apogee, data->peakVelocity);
+            std::snprintf(transmission, sizeof(transmission), "Apogee: %dft, Max velocity: %dft/s\n", 5, 7);
+            Serial.println(transmission);
             Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
             nextStep = Transmissions::Landing;
             break;
         case Transmissions::Landing:
-            std::sprintf(transmission, "Landing velocity: %.2fft/s, g-force: %.2fg\n", data->landingVelocity, data->landingG);
+            std::snprintf(transmission, sizeof(transmission), "Landing velocity: %.2fft/s, g-force: %.2fg\n", data->landingVelocity, data->landingG);
             Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
             nextStep = Transmissions::STEMnaut1;
             break;
         case Transmissions::STEMnaut1:
-            std::sprintf(transmission, "STEMnaut1 g-force: %.2fg, Survived: %s\n", data->survive1 * FEET_TO_M / 9.8, (data->survive1 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
+            std::snprintf(transmission, sizeof(transmission), "STEMnaut1 g-force: %.2fg, Survived: %s\n", data->survive1 * FEET_TO_M / 9.8, (data->survive1 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
             Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
             nextStep = Transmissions::STEMnaut2;
             break;
         case Transmissions::STEMnaut2:
-            std::sprintf(transmission, "STEMnaut2 g-force: %.2fg, Survived: %s\n", data->survive2 * FEET_TO_M / 9.8, (data->survive2 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
+            std::snprintf(transmission, sizeof(transmission), "STEMnaut2 g-force: %.2fg, Survived: %s\n", data->survive2 * FEET_TO_M / 9.8, (data->survive2 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
             Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
             nextStep = Transmissions::STEMnaut3;
             break;
         case Transmissions::STEMnaut3:
-            std::sprintf(transmission, "STEMnaut3 g-force: %.2fg, Survived: %s\n", data->survive3 * FEET_TO_M / 9.8, (data->survive3 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
+            std::snprintf(transmission, sizeof(transmission), "STEMnaut3 g-force: %.2fg, Survived: %s\n", data->survive3 * FEET_TO_M / 9.8, (data->survive3 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
             Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
             nextStep = Transmissions::STEMnaut4;
             break;
         case Transmissions::STEMnaut4:
-            std::sprintf(transmission, "STEMnaut4 g-force: %.2fg, Survived: %s\n", data->survive4 * FEET_TO_M / 9.8, (data->survive4 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
+            std::snprintf(transmission, sizeof(transmission), "STEMnaut4 g-force: %.2fg, Survived: %s\n", data->survive4 * FEET_TO_M / 9.8, (data->survive4 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
             Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
             nextStep = Transmissions::DONE;
             break;
