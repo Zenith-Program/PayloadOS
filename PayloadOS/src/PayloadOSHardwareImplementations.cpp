@@ -20,6 +20,7 @@ using namespace PayloadOS::Hardware;
 #define LightAPRSTransmitCommand 0x05
 #define LightAPRSReadyCommand 0x06
 #define LightAPRSBeginTransmissionCommand 0x07
+#define LightAPRSResetCommand 0x08
 
 #define I2C_DelayTime_us 5
 
@@ -939,25 +940,38 @@ error_t Altimeter2Hardware::updateReadings(){
 TransmitterHardware::TransmitterHardware() : init_m(false){}
 
 error_t TransmitterHardware::transmitString(const char* message){
+    constexpr uint_t MAX_RETRIES = 8;
     //initiaite coms
     Wire2.beginTransmission(LightAPRSAdress);
     Wire2.write(LightAPRSBeginTransmissionCommand);
     if(Wire2.endTransmission() != 0) return PayloadOS::ERROR;
     //transmit chunks
     const char* current;
+    const char* startOfChunck;
+    uint_t retries = 0;
     for(current = message; current < message + LightAPRS_TX_MaxSize - 1 && *current != '\0';){
+        delayMicroseconds(I2C_DelayTime_us);
         Wire2.beginTransmission(LightAPRSAdress);
         Wire2.write(LightAPRSSendSectionCommand);
-        for(const char* startOfChunck = current; current < message + LightAPRS_TX_MaxSize - 1 && current < startOfChunck + LightAPRS_ChunckSize && current != '\0'; current++)
+        for(startOfChunck = current; current < message + LightAPRS_TX_MaxSize - 1 && current < startOfChunck + LightAPRS_ChunckSize && *current != '\0'; current++){
             Wire2.write(*current);
-        if(Wire2.endTransmission(LightAPRSAdress) != 0) return PayloadOS::ERROR;
+        }
+        uint8_t code = Wire2.endTransmission();
+        if(code == 2 && retries < MAX_RETRIES){
+            current = startOfChunck;
+            retries++;
+        } 
+        else if(code != 0) return PayloadOS::ERROR;
+        else retries = 0;
     }
     //null terminate
+    delayMicroseconds(I2C_DelayTime_us);
     Wire2.beginTransmission(LightAPRSAdress);
     Wire2.write(LightAPRSSendSectionCommand);
     Wire2.write('\0');
     if(Wire2.endTransmission() != 0) return PayloadOS::ERROR;
     //end coms
+    delayMicroseconds(I2C_DelayTime_us);
     Wire2.beginTransmission(LightAPRSAdress);
     Wire2.write(LightAPRSTransmitCommand);
     if(Wire2.endTransmission() != 0) return PayloadOS::ERROR;
@@ -976,6 +990,12 @@ bool TransmitterHardware::available(){
 
 error_t TransmitterHardware::init(){
     Wire2.begin();
+    Wire2.beginTransmission(LightAPRSAdress);
+    Wire2.write(LightAPRSResetCommand);
+    if(Wire2.endTransmission() != 0){
+        init_m = false;
+        return PayloadOS::ERROR;
+    } 
     init_m = true;
     return PayloadOS::GOOD;
 }

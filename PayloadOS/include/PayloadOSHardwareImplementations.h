@@ -47,7 +47,6 @@ namespace PayloadOS{
 
         class TransmitterHardware : public Peripherals::TransmitterInterface{
             bool init_m;
-            uint_t timeOfLastTransmission;
         public:
             TransmitterHardware();
             error_t transmitString(const char*) override;
