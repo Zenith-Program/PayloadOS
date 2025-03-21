@@ -87,10 +87,6 @@ void Processing::loop(){
         }
     }
     TransmittedData* data = Transmit::getData();
-    //-------------------------
-    Serial.println(landingTime);
-    Serial.println(launchTime);
-    //-------------------------
     data->apogee = apogee;
     data->temperature = temperature;
     data->timeOfLanding = (landingTime - launchTime)/1000.0;
@@ -132,40 +128,39 @@ void Transmit::loop(){
     if(Peripherals::PeripheralSelector::get()->getTransmitter()->available()){
         switch(currentStep){
         case Transmissions::PayloadStatus:
-            std::snprintf(transmission, sizeof(transmission), "Apogee: 1ft, Max: ft/s\n");
-            Serial.println((Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::ERROR)? "Err" : "no"); //debug
-            nextStep = Transmissions::FlightParameters;
+            std::snprintf(transmission, sizeof(transmission), "Time: %.2fs, Temp: %.2fF, Power %.2fV\n", data->timeOfLanding, data->temperature, data->power);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::FlightParameters;
+            else nextStep = Transmissions::PayloadStatus;
             break;
         case Transmissions::FlightParameters:
             std::snprintf(transmission, sizeof(transmission), "Apogee: %dft, Max velocity: %dft/s\n", 5, 7);
-            Serial.println(transmission);
-            Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
-            nextStep = Transmissions::Landing;
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::Landing;
+            else nextStep = Transmissions::FlightParameters;
             break;
         case Transmissions::Landing:
             std::snprintf(transmission, sizeof(transmission), "Landing velocity: %.2fft/s, g-force: %.2fg\n", data->landingVelocity, data->landingG);
-            Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
-            nextStep = Transmissions::STEMnaut1;
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut1;
+            else nextStep = Transmissions::Landing;
             break;
         case Transmissions::STEMnaut1:
             std::snprintf(transmission, sizeof(transmission), "STEMnaut1 g-force: %.2fg, Survived: %s\n", data->survive1 * FEET_TO_M / 9.8, (data->survive1 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
-            Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
-            nextStep = Transmissions::STEMnaut2;
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut2;
+            else nextStep = Transmissions::STEMnaut1;
             break;
         case Transmissions::STEMnaut2:
             std::snprintf(transmission, sizeof(transmission), "STEMnaut2 g-force: %.2fg, Survived: %s\n", data->survive2 * FEET_TO_M / 9.8, (data->survive2 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
-            Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
-            nextStep = Transmissions::STEMnaut3;
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut3;
+            else nextStep = Transmissions::STEMnaut2;
             break;
         case Transmissions::STEMnaut3:
             std::snprintf(transmission, sizeof(transmission), "STEMnaut3 g-force: %.2fg, Survived: %s\n", data->survive3 * FEET_TO_M / 9.8, (data->survive3 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
-            Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
-            nextStep = Transmissions::STEMnaut4;
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut4;
+            else nextStep = Transmissions::STEMnaut3;
             break;
         case Transmissions::STEMnaut4:
             std::snprintf(transmission, sizeof(transmission), "STEMnaut4 g-force: %.2fg, Survived: %s\n", data->survive4 * FEET_TO_M / 9.8, (data->survive4 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
-            Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission);
-            nextStep = Transmissions::DONE;
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::DONE;
+            else nextStep = Transmissions::STEMnaut4;
             break;
             default:
             nextStep = Transmissions::DONE;
@@ -173,26 +168,8 @@ void Transmit::loop(){
         }
         currentStep = nextStep;
     }
-    
-    /*
-    TransmittedData* data = getData();
-    Serial.println(data->apogee);
-    Serial.println(data->landingG);
-    Serial.println(data->landingVelocity);
-    Serial.println(data->Orientation1);
-    Serial.println(data->Orientation2);
-    Serial.println(data->Orientation3);
-    Serial.println(data->Orientation4);
-    Serial.println(data->peakVelocity);
-    Serial.println(data->power);
-    Serial.println(data->survive1);
-    Serial.println(data->survive2);
-    Serial.println(data->survive3);
-    Serial.println(data->survive4);
-    Serial.println(data->temperature);
-    Serial.println(data->timeOfLanding);
-    */
 }
+
 void Transmit::end(){
 
 }

@@ -21,8 +21,10 @@ using namespace PayloadOS::Hardware;
 #define LightAPRSReadyCommand 0x06
 #define LightAPRSBeginTransmissionCommand 0x07
 #define LightAPRSResetCommand 0x08
+#define LightAPRSAvailableCode 'R'
 
-#define I2C_DelayTime_us 5
+#define I2C_DelayTime_us 10
+#define TransmitterDelayTime_us 100
 
 #define LightAPRS_TX_MaxSize 256
 #define LightAPRS_ChunckSize 32
@@ -920,9 +922,9 @@ error_t Altimeter2Hardware::updateReadings(){
         Wire2.beginTransmission(LightAPRSAdress);
         Wire2.write(LightAPRSAltimeterCommand);
         if(Wire2.endTransmission()!=0) return PayloadOS::ERROR;
-        delayMicroseconds(I2C_DelayTime_us);
+        delayMicroseconds(TransmitterDelayTime_us);
         Wire2.requestFrom(LightAPRSAdress, 3*sizeof(float));
-        delayMicroseconds(I2C_DelayTime_us);
+        delayMicroseconds(TransmitterDelayTime_us);
         float recived1, recived2, recived3;
         Wire2.readBytes((char*)&recived1, sizeof(recived1));
         Wire2.readBytes((char*)&recived2, sizeof(recived2));
@@ -940,17 +942,19 @@ error_t Altimeter2Hardware::updateReadings(){
 TransmitterHardware::TransmitterHardware() : init_m(false){}
 
 error_t TransmitterHardware::transmitString(const char* message){
+    if(!available()) return PayloadOS::ERROR;
     constexpr uint_t MAX_RETRIES = 8;
     //initiaite coms
     Wire2.beginTransmission(LightAPRSAdress);
     Wire2.write(LightAPRSBeginTransmissionCommand);
     if(Wire2.endTransmission() != 0) return PayloadOS::ERROR;
+    delayMicroseconds(TransmitterDelayTime_us);
     //transmit chunks
     const char* current;
     const char* startOfChunck;
     uint_t retries = 0;
     for(current = message; current < message + LightAPRS_TX_MaxSize - 1 && *current != '\0';){
-        delayMicroseconds(I2C_DelayTime_us);
+        delayMicroseconds(TransmitterDelayTime_us);
         Wire2.beginTransmission(LightAPRSAdress);
         Wire2.write(LightAPRSSendSectionCommand);
         for(startOfChunck = current; current < message + LightAPRS_TX_MaxSize - 1 && current < startOfChunck + LightAPRS_ChunckSize && *current != '\0'; current++){
@@ -965,13 +969,13 @@ error_t TransmitterHardware::transmitString(const char* message){
         else retries = 0;
     }
     //null terminate
-    delayMicroseconds(I2C_DelayTime_us);
+    delayMicroseconds(TransmitterDelayTime_us);
     Wire2.beginTransmission(LightAPRSAdress);
     Wire2.write(LightAPRSSendSectionCommand);
     Wire2.write('\0');
     if(Wire2.endTransmission() != 0) return PayloadOS::ERROR;
     //end coms
-    delayMicroseconds(I2C_DelayTime_us);
+    delayMicroseconds(TransmitterDelayTime_us);
     Wire2.beginTransmission(LightAPRSAdress);
     Wire2.write(LightAPRSTransmitCommand);
     if(Wire2.endTransmission() != 0) return PayloadOS::ERROR;
@@ -979,13 +983,17 @@ error_t TransmitterHardware::transmitString(const char* message){
 }
 
 bool TransmitterHardware::available(){
+    delayMicroseconds(TransmitterDelayTime_us);
+    uint8_t code = 0;
     Wire2.beginTransmission(LightAPRSAdress);
     Wire2.write(LightAPRSReadyCommand);
-    if(Wire2.endTransmission() != 0) return PayloadOS::ERROR;
-    delayMicroseconds(I2C_DelayTime_us);
+    code = Wire2.endTransmission();
+    if(code != 0) return false;
+    delayMicroseconds(TransmitterDelayTime_us);
     Wire2.requestFrom(LightAPRSAdress, 1);
-    char code = Wire2.read();
-    return code == 0x00;
+    char availabilityCode = Wire2.read();
+    if(availabilityCode == LightAPRSAvailableCode) return true;
+    return false;
 }
 
 error_t TransmitterHardware::init(){
@@ -1005,7 +1013,9 @@ Peripherals::PeripheralStatus TransmitterHardware::status(){
     Wire2.begin();
     Wire2.beginTransmission(LightAPRSAdress);
     if(Wire2.endTransmission() == 0) read = true;
-    return {init_m, read, init_m && read && available(), init_m && read && available()};
+    delayMicroseconds(TransmitterDelayTime_us);
+    bool isAvailable = available();
+    return {init_m, read, init_m && read && isAvailable, init_m && read && isAvailable};
 }
 
 error_t TransmitterHardware::deInit(){
@@ -1019,17 +1029,6 @@ void TransmitterHardware::printReport(){
     Serial.println(init_m? "yes" : "no");
     Serial.print("Available: ");
     Serial.println(available()? "yes" : "no");
-}
-
-const char* TransmitterHardware::transmitChunck(const char* message){
-    Wire2.beginTransmission(LightAPRSAdress);
-    Wire2.write(LightAPRSSendSectionCommand);
-    if(Wire2.endTransmission() != 0) return nullptr;
-    delayMicroseconds(I2C_DelayTime_us);
-    for(uint_t i=0; i<32 && *message != '\0'; i++)
-        Wire2.write(*message++);
-    if(Wire2.endTransmission() != 0) return nullptr;
-    return message;
 }
 
 //Power check--------------------------------------------------

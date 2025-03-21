@@ -56,7 +56,6 @@ namespace PayloadOS{
             error_t deInit()override;
             void printReport() override;
         private:
-             const char* transmitChunck(const char*);
         };
 
         class GPSHardware : public Peripherals::GPSInterface{
