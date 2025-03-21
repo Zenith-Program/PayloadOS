@@ -92,10 +92,14 @@ const Interpreter::CommandList* Standby::getCommands(){
         CMD{"debug", "", toDebug},
         CMD{"arm", "", softwareArm},
         CMD{"disarm", "", softwareDisarm},
-        CMD{"telemetryFileName", "s", FlightData::TelemetryLog::setName_CMD},
-        CMD{"telemetryFile", "", FlightData::TelemetryLog::displayFile_CMD},
-        CMD{"telemetryFlushPeriod", "u", FlightData::TelemetryLog::setFlush_CMD},
-        CMD{"initSD", "", FlightData::TelemetryLog::init_CMD},
+        CMD{"initSD", "", FlightData::SDFiles::init_c},
+        CMD{"fileName", "w", FlightData::SDFiles::getFilename_c},
+        CMD{"setFileName", "ws", FlightData::SDFiles::setFileName_C},
+        CMD{"fileFlush", "w", FlightData::SDFiles::getFlushPeriod_c},
+        CMD{"setFileFlush", "wu", FlightData::SDFiles::setFlushPeriod_c},
+        CMD{"eventFile", "w", FlightData::SDFiles::eventLogCntrl_c},
+        CMD{"messageEvent", "s", FlightData::SDFiles::logCustomEvent_c},
+        CMD{"displayFile", "w", FlightData::SDFiles::displayFile_c},
         CMD{"zeroAltimeter1", "", FlightData::AltimeterVariances::zeroAltimeter1},
         CMD{"zeroAltimeter2", "", FlightData::AltimeterVariances::zeroAltimeter2},
         CMD{"flightParameters", "", FlightData::FlightParameters::print_c},
@@ -126,7 +130,7 @@ void Startup::init(){
 void Startup::loop(){
     Serial.println("Starting Up...");
     initAllPeripherals();
-    FlightData::TelemetryLog::get()->init();
+    //FlightData::SDFiles::get()->init();
     Serial.println("Startup Complete");
 }
 void Startup::end(){

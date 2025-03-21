@@ -24,55 +24,34 @@ namespace PayloadOS{
         enum class SDStates{
             None, Read, Write
         };
-
-        enum class SDFiles{
-            Synthesis, Telemetry, Event, SENTINAL_COUNT
-        };
         
         class TelemetryLog{
-            //general---------------
-            SdFat sd;
+            SdFat* sd;
+            char fileName[PayloadOS_LogFileNameSize];
+            char buffer[PayloadOS_LogParseBufferSize];
             uint_t flushPeriod;
-            //----------------------
-
-            //Synthesis log---------
-            char synthesisFileName[PayloadOS_LogFileNameSize];
-            char synthesisLineBuffer[PayloadOS_LogParseBufferSize];
-            uint_t synthesisFlushCount;
-            SDStates synthesisState;
-            FsFile synthesisFile;
-            char* synthesisPos;
-            //----------------------
-
-            //Telemetry log----------
-            char telemetryFileName[PayloadOS_LogFileNameSize];
-            uint_t telemetryFlushCount;
-            FsFile telemetryFile;
-            //----------------------
-
-            //Event log-------------
-            char eventFileName[PayloadOS_LogFileNameSize];
-            uint_t eventFlushCount;
-            FsFile eventFlushCount;
-            //----------------------
-            
+            uint_t flushCount;
+            SDStates state;
+            FsFile file;
+            char* pos;
         public:
             //general
-            error_t init();
+            void setSDCard(SdFat*);
             error_t openForRead();
             error_t openForWrite();
             error_t close();
-            error_t setFlushPeriod(uint_t);
-            error_t setFileName(const char*);
+            SDStates currentMode() const;
             //read
             error_t readLine(TelemetryData&);
             //write
             error_t logLine();
-            //commands
-            static void setName_CMD(const Interpreter::Token*);
-            static void displayFile_CMD(const Interpreter::Token*);
-            static void setFlush_CMD(const Interpreter::Token*);
-            static void init_CMD(const Interpreter::Token*);
+            error_t logMessage(const char*);
+            //interface
+            error_t setFlushPeriod(uint_t);
+            error_t setFileName(const char*);
+            const char* getFileName() const;
+            uint_t getFlushPeriod() const;
+            void displayFile();
         private:
             void logIMU(Peripherals::IMUInterface*);
             void logGPS();
@@ -89,14 +68,43 @@ namespace PayloadOS{
             static bool isWhiteSpace(char);
 		    static bool isNumeric(char);
             static float_t negPow10(uint_t);
-        //singleton implementation
         public:
-            static TelemetryLog* get();
-            TelemetryLog(const TelemetryLog&) = delete;
-            void operator=(const TelemetryLog&) = delete;
-        private:
+        //public constructor
             TelemetryLog();
+            TelemetryLog(SdFat*);
         };
 
+        enum class TelemetryLogs{
+            Analysis, BlackBox, Message, HIL, SENTINAL_COUNT
+        };
+
+        class SDFiles{
+            SdFat sd;
+            TelemetryLog analysisLog;
+            TelemetryLog blackBoxLog;
+            TelemetryLog messageLog;
+            TelemetryLog HILLog;
+        public:
+            error_t init();
+            TelemetryLog* getLog(TelemetryLogs);
+
+            //commands------------------
+            static void init_c(const Interpreter::Token*);
+            static void getFilename_c(const Interpreter::Token*);
+            static void setFileName_C(const Interpreter::Token*);
+            static void displayFile_c(const Interpreter::Token*);
+            static void logCustomEvent_c(const Interpreter::Token*);
+            static void eventLogCntrl_c(const Interpreter::Token*);
+            static void getFlushPeriod_c(const Interpreter::Token*);
+            static void setFlushPeriod_c(const Interpreter::Token*);
+            //--------------------------
+
+            //singleton
+            static SDFiles* get();
+            SDFiles(const SDFiles&) = delete;
+            void operator=(const SDFiles&) = delete;
+        private:
+            SDFiles();
+        };
     }
 }

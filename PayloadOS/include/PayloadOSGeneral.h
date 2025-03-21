@@ -111,6 +111,10 @@ static_assert(false, "PayloadOS_ModelSim_ProcessOrder must be defined in the fil
 static_assert(PayloadOS_ModelSim_ProcessOrder>1, "The order defined by PayloadOS_ModelSim_ProcessOrder must be greater than zero");
 #endif
 
+#ifndef PayloadOS_DataSimDefaultFileName
+    static_assert(false, "PayloadOS_DataSimDefaultFileName must be deifned in the file PayloadOS.cfg.h")
+#endif
+
 
 //other configurations
 #ifndef PayloadOS_ConsoleBaudRate
@@ -123,6 +127,18 @@ static_assert(PayloadOS_ConsoleBaudRate>0, "The baud rate defined by PayloadOS_C
 static_assert(false, "PayloadOS_DefaultSamplePeriod must be defined in file PayloadOS.cfg.h");
 #else
 static_assert(PayloadOS_DefaultSamplePeriod>0, "The state machine & log sample rate defined by PayloadOS_DefaultSamplePeriod must be positive");
+#endif
+
+#ifndef PayloadOS_DefaultAnalysisFileName
+    static_assert(false, "PayloadOS_DefaultAnalysisFileName must be deifned in the file PayloadOS.cfg.h")
+#endif
+
+#ifndef PayloadOS_DefaultBlackBoxFileName
+    static_assert(false, "PayloadOS_DefaultBlackBoxFileNamee must be deifned in the file PayloadOS.cfg.h")
+#endif
+
+#ifndef PayloadOS_DefaultEventFileName
+    static_assert(false, "PayloadOS_DefaultEventFileName must be deifned in the file PayloadOS.cfg.h")
 #endif
 
 

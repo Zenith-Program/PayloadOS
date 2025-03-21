@@ -21,8 +21,8 @@ STEMnaut survivability ^*
 
 //Processing State---------------------------------------------
 void Processing::init(){
-    FlightData::TelemetryLog::get()->close();
-    FlightData::TelemetryLog::get()->openForRead();
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->close();
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->openForRead();
     Serial.println("Processing");
 }
 void Processing::loop(){
@@ -43,7 +43,7 @@ void Processing::loop(){
     float_t maxAccel1 = 0, maxAccel2 = 0, maxAccel3 = 0, maxAccel4 = 0;
     float_t previousAltitude = 0;
     uint_t line = 0;
-    while(FlightData::TelemetryLog::get()->readLine(telemetry) != PayloadOS::ERROR && !telemetry.endOfFile){
+    while(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->readLine(telemetry) != PayloadOS::ERROR && !telemetry.endOfFile){
         //time of landing
         if(telemetry.state == static_cast<uint_t>(States::Flight) && launchTime == 0) launchTime = telemetry.time;
         //apogee
@@ -66,20 +66,20 @@ void Processing::loop(){
         if(acceleration1 > maxAccel4) maxAccel4 = acceleration4;
     }   
     //landing velocity
-    FlightData::TelemetryLog::get()->close();
-    FlightData::TelemetryLog::get()->openForRead();
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->close();
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->openForRead();
     constexpr uint_t LookBackTime_ms = 3000;
     uint_t index;
     for(index = 0; index < line - LookBackTime_ms * 1000/State::ProgramState::get()->getPeriod(); index++)
-        FlightData::TelemetryLog::get()->readLine(telemetry);
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->readLine(telemetry);
     float_t altitude1 = (telemetry.altitude1 - FlightData::AltimeterVariances::getAltimeter1Zero() + telemetry.altitude2 - FlightData::AltimeterVariances::getAltimeter2Zero())/2.0;
-    FlightData::TelemetryLog::get()->readLine(telemetry);
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->readLine(telemetry);
     float_t altitude0 = (telemetry.altitude1 - FlightData::AltimeterVariances::getAltimeter1Zero() + telemetry.altitude2 - FlightData::AltimeterVariances::getAltimeter2Zero())/2.0;
     float_t landingVelocity = (altitude0 - altitude1)/(ProgramState::get()->getPeriod() / 1000000.0);
     //sustained g-force
     float_t landingG = Peripherals::IMUInterface::magnitude(telemetry.accel0);
     landingTime = telemetry.time;
-    while(FlightData::TelemetryLog::get()->readLine(telemetry) != PayloadOS::ERROR && !telemetry.endOfFile){
+    while(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->readLine(telemetry) != PayloadOS::ERROR && !telemetry.endOfFile){
         float_t accel = Peripherals::IMUInterface::magnitude(telemetry.accel0);
         if(accel > landingG){ 
             landingG =  accel;

@@ -104,18 +104,26 @@
 /*Simulation configurations
  * Macros:
  * PayloadOS_ModelSim_ProcessOrder - order of the random process generator. Determines how complex the processes it generates are
+ * PayloadOS_DataSimDefaultFileName - default file that dataSim will attempt to read from
 */
 
 #define PayloadOS_ModelSim_ProcessOrder 5
+#define PayloadOS_DataSimDefaultFileName "dataSim.txt"
 
 /*Other Configurations-----------------------------------------
  * Macros:
  * PayloadOS_ConsoleBaudRate - baud rate of the console. Make sure that serial monitor or whatever console program you're usign matches this
  * PayloadOS_DefaultSamplePeriod - period of the state machine in us. Logs occur at this frequency
+ * PayloadOS_DefaultAnalysisFileName - default file that analysis files will be stored in
+ * PayloadOS_DefaultBlackBoxFileName - default file that balck box files will be stored in
+ * PayloadOS_DefaultEventFileName - default file that event logs will be stored in
 */
 
 #define PayloadOS_ConsoleBaudRate 115200
 #define PayloadOS_DefaultSamplePeriod 125000
+#define PayloadOS_DefaultAnalysisFileName "analysis.txt"
+#define PayloadOS_DefaultBlackBoxFileName "blackBox.txt"
+#define PayloadOS_DefaultEventFileName "event.txt"
 
 /*
 */

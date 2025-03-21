@@ -17,7 +17,7 @@ void Armed::init(){
     FlightData::AltimeterVariances::getAltimeter1()->clear();
     FlightData::AltimeterVariances::getAltimeter2()->setSize(varianceSize);
     FlightData::AltimeterVariances::getAltimeter2()->clear();
-    FlightData::TelemetryLog::get()->openForWrite();
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->openForWrite();
     Serial.println("The payload is armed");
 }
 void Armed::loop(){
@@ -25,7 +25,7 @@ void Armed::loop(){
     float_t altimeter2Reading = Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getAltitude_ft();
     FlightData::AltimeterVariances::getAltimeter1()->push(altimeter1Reading);
     FlightData::AltimeterVariances::getAltimeter2()->push(altimeter2Reading);
-    FlightData::TelemetryLog::get()->logLine();
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->logLine();
 }
 void Armed::end(){
     //NOP
@@ -76,7 +76,7 @@ void Flight::loop(){
     float_t altimeter2Reading = Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getAltitude_ft();
     FlightData::AltimeterVariances::getAltimeter1()->push(altimeter1Reading);
     FlightData::AltimeterVariances::getAltimeter2()->push(altimeter2Reading);
-    FlightData::TelemetryLog::get()->logLine();
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->logLine();
 }
 void Flight::end(){
 

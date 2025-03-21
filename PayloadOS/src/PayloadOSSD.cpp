@@ -6,49 +6,264 @@ using namespace PayloadOS;
 using namespace FlightData;
 
 #define SD_CONFIG SdioConfig(FIFO_SDIO)
+//implementation of SDFiles----------------------------------------------------
+SDFiles::SDFiles() : analysisLog(&sd), blackBoxLog(&sd), messageLog(&sd), HILLog(&sd){
+    analysisLog.setFileName(PayloadOS_DefaultAnalysisFileName);
+    blackBoxLog.setFileName(PayloadOS_DefaultBlackBoxFileName);
+    messageLog.setFileName(PayloadOS_DefaultEventFileName);
+    HILLog.setFileName(PayloadOS_DataSimDefaultFileName);
+}
+
+error_t SDFiles::init(){
+    if(sd.begin(SD_CONFIG) == false) return PayloadOS::ERROR;
+    return PayloadOS::GOOD;
+}
+
+TelemetryLog* SDFiles::getLog(TelemetryLogs log){
+    switch(log){
+    case TelemetryLogs::Analysis:
+        return &analysisLog;
+        break;
+    case TelemetryLogs::BlackBox:
+        return &blackBoxLog;
+        break;
+    case TelemetryLogs::Message:
+        return &messageLog;
+        break;
+    case TelemetryLogs::HIL:
+        return &HILLog;
+        break;
+    default:
+        return nullptr;
+    }
+}
+
+//singleton--------------------
+SDFiles* SDFiles::get(){
+    static SDFiles instance;
+    return &instance;
+}
+
+//commands---------------------
+void SDFiles::init_c(const Interpreter::Token*){
+    if(get()->init() == PayloadOS::ERROR) Serial.println("Failed to initialize the SD card");
+}
+void SDFiles::getFilename_c(const Interpreter::Token* args){
+    char nameBuffer[128];
+    args[0].copyStringData(nameBuffer, 128);
+    if(std::strcmp(nameBuffer, "analysis") == 0){
+        Serial.println(get()->getLog(TelemetryLogs::Analysis)->getFileName());
+        return;
+    }
+    if(std::strcmp(nameBuffer, "blackBox") == 0){
+        Serial.println(get()->getLog(TelemetryLogs::BlackBox)->getFileName());
+        return;
+    }
+    if(std::strcmp(nameBuffer, "events") == 0){
+        Serial.println(get()->getLog(TelemetryLogs::Message)->getFileName());
+        return;
+    }
+    if(std::strcmp(nameBuffer, "dataSim") == 0){
+        Serial.println(get()->getLog(TelemetryLogs::HIL)->getFileName());
+        return;
+    }
+    Serial.print("PayloadOS does not contain the file '");
+    Serial.print(nameBuffer);
+    Serial.println("'");
+}
+
+void SDFiles::setFileName_C(const Interpreter::Token* args){
+    char nameBuffer[128];
+    char fileNameBuffer[PayloadOS_LogFileNameSize];
+    args[0].copyStringData(nameBuffer, 128);
+    args[1].copyStringData(fileNameBuffer, PayloadOS_LogFileNameSize);
+    if(std::strcmp(nameBuffer, "analysis") == 0){
+        get()->getLog(TelemetryLogs::Analysis)->setFileName(fileNameBuffer);
+        return;
+    }
+    if(std::strcmp(nameBuffer, "blackBox") == 0){
+        get()->getLog(TelemetryLogs::BlackBox)->setFileName(fileNameBuffer);
+        return;
+    }
+    if(std::strcmp(nameBuffer, "events") == 0){
+        get()->getLog(TelemetryLogs::Message)->setFileName(fileNameBuffer);
+        return;
+    }
+    if(std::strcmp(nameBuffer, "dataSim") == 0){
+        get()->getLog(TelemetryLogs::HIL)->setFileName(fileNameBuffer);
+        return;
+    }
+    Serial.print("PayloadOS does not contain the file '");
+    Serial.print(nameBuffer);
+    Serial.println("'");
+}
+
+void SDFiles::displayFile_c(const Interpreter::Token* args){
+    char nameBuffer[128];
+    args[0].copyStringData(nameBuffer, 128);
+    if(std::strcmp(nameBuffer, "analysis") == 0){
+        get()->getLog(TelemetryLogs::Analysis)->displayFile();
+        return;
+    }
+    if(std::strcmp(nameBuffer, "blackBox") == 0){
+        get()->getLog(TelemetryLogs::BlackBox)->displayFile();
+        return;
+    }
+    if(std::strcmp(nameBuffer, "events") == 0){
+        get()->getLog(TelemetryLogs::Message)->displayFile();
+        return;
+    }
+    if(std::strcmp(nameBuffer, "dataSim") == 0){
+        get()->getLog(TelemetryLogs::HIL)->displayFile();
+        return;
+    }
+    Serial.print("PayloadOS does not contain the file '");
+    Serial.print(nameBuffer);
+    Serial.println("'");
+}
+
+void SDFiles::logCustomEvent_c(const Interpreter::Token* args){
+    char messageBuffer[128];
+    args[0].copyStringData(messageBuffer, 128);
+    if(get()->getLog(TelemetryLogs::Message)->logMessage(messageBuffer) == PayloadOS::ERROR)
+        Serial.println("Failed to log the message");
+}
+
+void SDFiles::eventLogCntrl_c(const Interpreter::Token* args){
+    char type[32];
+    args[0].copyStringData(type, 32);
+    if(std::strcmp(type, "get") == 0){
+        switch(get()->getLog(TelemetryLogs::Message)->currentMode()){
+        default:
+        case SDStates::None:
+            Serial.println("closed");
+            break;
+        case SDStates::Write:
+            Serial.println("Write");
+            break;
+        case SDStates::Read:
+            Serial.println("Read");
+            break;
+        }
+        return;
+    }
+    if(std::strcmp(type, "open") == 0){
+        get()->getLog(TelemetryLogs::Message)->openForWrite();
+        return;
+    }
+    if(std::strcmp(type, "close") == 0){
+        get()->getLog(TelemetryLogs::Message)->close();
+        return;
+    }
+    Serial.print("'");
+    Serial.print(type);
+    Serial.println("' is not a valid argument. Choose 'get', 'open', or 'close'");
+}
+
+void SDFiles::getFlushPeriod_c(const Interpreter::Token* args){
+    char nameBuffer[128];
+    args[0].copyStringData(nameBuffer, 128);
+    if(std::strcmp(nameBuffer, "analysis") == 0){
+        Serial.print(get()->getLog(TelemetryLogs::Analysis)->getFlushPeriod());
+        Serial.println(" logs");
+        return;
+    }
+    if(std::strcmp(nameBuffer, "blackBox") == 0){
+        Serial.print(get()->getLog(TelemetryLogs::BlackBox)->getFlushPeriod());
+        Serial.println(" logs");
+        return;
+    }
+    if(std::strcmp(nameBuffer, "events") == 0){
+        Serial.print(get()->getLog(TelemetryLogs::Message)->getFlushPeriod());
+        Serial.println(" logs");
+        return;
+    }
+    if(std::strcmp(nameBuffer, "dataSim") == 0){
+        Serial.print(get()->getLog(TelemetryLogs::HIL)->getFlushPeriod());
+        Serial.println(" logs");
+        return;
+    }
+    Serial.print("PayloadOS does not contain the file '");
+    Serial.print(nameBuffer);
+    Serial.println("'");
+}
+
+void SDFiles::setFlushPeriod_c(const Interpreter::Token* args){
+    char nameBuffer[128];
+    uint_t newPeriod = args[1].getUnsignedData();
+    args[0].copyStringData(nameBuffer, 128);
+    if(std::strcmp(nameBuffer, "analysis") == 0){
+        get()->getLog(TelemetryLogs::Analysis)->setFlushPeriod(newPeriod);
+        return;
+    }
+    if(std::strcmp(nameBuffer, "blackBox") == 0){
+        get()->getLog(TelemetryLogs::BlackBox)->setFlushPeriod(newPeriod);
+        return;
+    }
+    if(std::strcmp(nameBuffer, "events") == 0){
+        get()->getLog(TelemetryLogs::Message)->setFlushPeriod(newPeriod);
+        return;
+    }
+    if(std::strcmp(nameBuffer, "dataSim") == 0){
+        get()->getLog(TelemetryLogs::HIL)->setFlushPeriod(newPeriod);
+        return;
+    }
+    Serial.print("PayloadOS does not contain the file '");
+    Serial.print(nameBuffer);
+    Serial.println("'");
+}
+
+
+//implementation of TelemetryFile----------------------------------------------
 #define EMPTY_VECTOR {0,0,0}
 #define ERROR_TELEMETRY {false, 0, 0, 0, 0, 0, 0, 0, 0, \
     EMPTY_VECTOR, EMPTY_VECTOR, EMPTY_VECTOR, EMPTY_VECTOR,  EMPTY_VECTOR, \
     EMPTY_VECTOR, EMPTY_VECTOR, EMPTY_VECTOR, EMPTY_VECTOR,  EMPTY_VECTOR,\
     EMPTY_VECTOR, EMPTY_VECTOR, EMPTY_VECTOR, EMPTY_VECTOR,  EMPTY_VECTOR,\
     0, {{0,0}, 0, 0, 0}}
-#define SPACE synthesisFile.print(' ')
+#define SPACE file.print(' ')
 #define Print_SPACE Serial.print(' ')
-#define NEWLINE synthesisFile.println()
+#define NEWLINE file.println()
 #define Print_NEWLINE Serial.println()
 #define CHECK_EOF if(!file.available()) {telemetry.endOfFile = true; return PayloadOS::GOOD;}
 
-TelemetryLog::TelemetryLog() : flushPeriod(4), synthesisFileName(""), synthesisFlushCount(0), synthesisState(SDStates::None) {} 
+TelemetryLog::TelemetryLog() : sd(nullptr), fileName(""), flushPeriod(4), flushCount(0), state(SDStates::None) {} 
+TelemetryLog::TelemetryLog(SdFat* sdInstance) : sd(sdInstance), fileName(""), flushPeriod(4), flushCount(0), state(SDStates::None) {} 
 
-error_t TelemetryLog::init(){
-    if(sd.begin(SD_CONFIG)) return PayloadOS::GOOD;
-    return PayloadOS::ERROR;
+void TelemetryLog::setSDCard(SdFat* sdInstance){
+    sd = sdInstance;
 }
 
 error_t TelemetryLog::openForRead(){
-    if(std::strcmp(synthesisFileName, "") == 0) return PayloadOS::ERROR;
-    synthesisFile.close();
-    synthesisState = SDStates::None;
-    synthesisFile = sd.open(synthesisFileName, FILE_READ);
-    if(!synthesisFile) return PayloadOS::ERROR;
-    synthesisState = SDStates::Read;
+    if(std::strcmp(fileName, "") == 0) return PayloadOS::ERROR;
+    file.close();
+    state = SDStates::None;
+    if(sd == nullptr) return PayloadOS::ERROR;
+    file = sd->open(fileName, FILE_READ);
+    if(!file) return PayloadOS::ERROR;
+    state = SDStates::Read;
     return PayloadOS::GOOD;
 }
 
 error_t TelemetryLog::openForWrite(){
-    if(std::strcmp(synthesisFileName, "") == 0) return PayloadOS::ERROR;
-    synthesisFile.close();
-    synthesisState = SDStates::None;
-    synthesisFile = sd.open(synthesisFileName, FILE_WRITE);
-    if(!synthesisFile) return PayloadOS::ERROR;
-    synthesisState = SDStates::Write;
+    if(std::strcmp(fileName, "") == 0) return PayloadOS::ERROR;
+    file.close();
+    state = SDStates::None;
+    if(sd == nullptr) return PayloadOS::ERROR;
+    file = sd->open(fileName, O_WRITE | O_CREAT | O_TRUNC);
+    if(!file) return PayloadOS::ERROR;
+    state = SDStates::Write;
     return PayloadOS::GOOD;
 }
 
 error_t TelemetryLog::close(){
-    synthesisFile.close();
-    synthesisState = SDStates::None;
+    file.close();
+    state = SDStates::None;
     return PayloadOS::GOOD;
+}
+
+SDStates TelemetryLog::currentMode() const{
+    return state;
 }
 
 error_t TelemetryLog::setFlushPeriod(uint_t period){
@@ -62,18 +277,26 @@ error_t TelemetryLog::setFlushPeriod(uint_t period){
 error_t TelemetryLog::setFileName(const char* newName){
     uint_t i;
     for(i=0; i<PayloadOS_LogFileNameSize && newName[i] != '\0'; i++)
-        synthesisFileName[i] = newName[i];
+        fileName[i] = newName[i];
     if(i == PayloadOS_LogFileNameSize){
-        synthesisFileName[i-1] = '\0';
+        fileName[i-1] = '\0';
         return PayloadOS::ERROR;
     } 
-    synthesisFileName[i] = '\0';
+    fileName[i] = '\0';
     return PayloadOS::GOOD;
+}
+
+const char* TelemetryLog::getFileName() const{
+    return fileName;
+}
+
+uint_t TelemetryLog::getFlushPeriod() const{
+    return flushPeriod;
 }
 
 //read
 error_t TelemetryLog::readLine(TelemetryData& telemetry){
-    if(!synthesisFile.isOpen() || !synthesisFile || synthesisState != SDStates::Read) return PayloadOS::ERROR;
+    if(!file.isOpen() || !file || state != SDStates::Read) return PayloadOS::ERROR;
     telemetry.endOfFile = getline();
     telemetry.time = getUnsigned();
     telemetry.state = getUnsigned();
@@ -148,22 +371,22 @@ void TelemetryLog::readGPS(TelemetryData& telemetry){
 }
 //write
 error_t TelemetryLog::logLine(){
-    if(!synthesisFile.isOpen() || !synthesisFile || synthesisState != SDStates::Write) return PayloadOS::ERROR;
-    synthesisFile.print(millis());
+    if(!file.isOpen() || !file || state != SDStates::Write) return PayloadOS::ERROR;
+    file.print(millis());
     SPACE;
-    synthesisFile.print(static_cast<uint_t>(State::ProgramState::get()->getCurrentState()));
+    file.print(static_cast<uint_t>(State::ProgramState::get()->getCurrentState()));
     SPACE;
-    synthesisFile.print(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getAltitude_ft());
+    file.print(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getAltitude_ft());
     SPACE;
-    synthesisFile.print(Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getAltitude_ft());
+    file.print(Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getAltitude_ft());
     SPACE;
-    synthesisFile.print(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getPressure_psi());
+    file.print(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getPressure_psi());
     SPACE;
-    synthesisFile.print(Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getPressure_psi());
+    file.print(Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getPressure_psi());
     SPACE;
-    synthesisFile.print(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getTemperature_F());
+    file.print(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getTemperature_F());
     SPACE;
-    synthesisFile.print(Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getTemperature_F());
+    file.print(Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getTemperature_F());
     SPACE;
     logIMU(Peripherals::PeripheralSelector::get()->getPayloadIMU());
     SPACE;
@@ -175,75 +398,65 @@ error_t TelemetryLog::logLine(){
     SPACE;
     logIMU(Peripherals::PeripheralSelector::get()->getSTEMnaut4());
     SPACE;
-    synthesisFile.print(Peripherals::PeripheralSelector::get()->getPowerCheck()->getVoltage());
+    file.print(Peripherals::PeripheralSelector::get()->getPowerCheck()->getVoltage());
     SPACE;
     logGPS();
     NEWLINE;
-    if(synthesisFlushCount == flushPeriod){
-        synthesisFile.flush();
-        synthesisFlushCount = 0;
+    if(flushCount == flushPeriod){
+        file.flush();
+        flushCount = 0;
     }
     else{
-        synthesisFlushCount++;
+        flushCount++;
     }
-    if(synthesisFile) return PayloadOS::GOOD;
+    if(file) return PayloadOS::GOOD;
     return PayloadOS::ERROR;
 }
 
 void TelemetryLog::logIMU(Peripherals::IMUInterface* imu){
     Peripherals::LinearVector v = imu->getAcceleration_ft_s2();
-    synthesisFile.print(v.x);
+    file.print(v.x);
     SPACE;
-    synthesisFile.print(v.y);
+    file.print(v.y);
     SPACE;
-    synthesisFile.print(v.z);
+    file.print(v.z);
     SPACE;
     Peripherals::RotationVector u = imu->getAngularVelocity_deg_s();
-    synthesisFile.print(u.x_rot);
+    file.print(u.x_rot);
     SPACE;
-    synthesisFile.print(u.y_rot);
+    file.print(u.y_rot);
     SPACE;
-    synthesisFile.print(u.z_rot);
+    file.print(u.z_rot);
     SPACE;
     v = imu->getGravityVector();
-    synthesisFile.print(v.x);
+    file.print(v.x);
     SPACE;
-    synthesisFile.print(v.y);
+    file.print(v.y);
     SPACE;
-    synthesisFile.print(v.z);
+    file.print(v.z);
 }
 
 void TelemetryLog::logGPS(){
     Peripherals::GPSData data = Peripherals::PeripheralSelector::get()->getGPS()->getData();
-    synthesisFile.print(data.position.x);
+    file.print(data.position.x);
     SPACE;
-    synthesisFile.print(data.position.y);
+    file.print(data.position.y);
     SPACE;
-    synthesisFile.print(data.altitude);
+    file.print(data.altitude);
     SPACE;
-    synthesisFile.print(data.satalites);
+    file.print(data.satalites);
     SPACE;
-    synthesisFile.print(data.fixAge);
-}
-
-//singleton
-
-TelemetryLog* TelemetryLog::get(){
-    static TelemetryLog instance;
-    return &instance;
+    file.print(data.fixAge);
 }
 
 //commands
-void TelemetryLog::setName_CMD(const Interpreter::Token* args){
-    if(args[0].copyStringData(get()->synthesisFileName, PayloadOS_LogFileNameSize) == PayloadOS::ERROR) Serial.println("File name was truncated");
-}
 
-void TelemetryLog::displayFile_CMD(const Interpreter::Token*){
-    if(get()->openForRead() == PayloadOS::ERROR) Serial.printf("Could not open the file '%s'\n", get()->synthesisFileName);
-    Serial.printf("##### %s #####\n", get()->synthesisFileName);
+void TelemetryLog::displayFile(){
+    if(openForRead() == PayloadOS::ERROR) Serial.printf("Could not open the file '%s'\n", fileName);
+    Serial.printf("##### %s #####\n", fileName);
     TelemetryData telemetry;
 
-    while(get()->readLine(telemetry) != PayloadOS::ERROR && !telemetry.endOfFile){
+    while(readLine(telemetry) != PayloadOS::ERROR && !telemetry.endOfFile){
         Serial.print(telemetry.time);
         Print_SPACE;
         Serial.print(telemetry.state);
@@ -276,6 +489,15 @@ void TelemetryLog::displayFile_CMD(const Interpreter::Token*){
         Print_SPACE;
         Print_NEWLINE;
     }
+}
+
+error_t TelemetryLog::logMessage(const char* message){
+    if(!file.isOpen() || !file || state != SDStates::Write) return PayloadOS::ERROR;
+    file.print("[");
+    file.print(millis());
+    file.print("] ");
+    file.println(message);
+    return PayloadOS::GOOD;
 }
 
 void TelemetryLog::printIMU(const TelemetryData& telemetry, uint_t IMU){
@@ -342,53 +564,44 @@ void TelemetryLog::printGPS(const TelemetryData& telemetry){
     Serial.print(telemetry.gps.fixAge);
 }
 
-void TelemetryLog::setFlush_CMD(const Interpreter::Token*args){
-    uint_t newFlush = args[0].getUnsignedData();
-    if(get()->setFlushPeriod(newFlush) == PayloadOS::ERROR) Serial.println("Invalid Flush Period");
-}
-
-void TelemetryLog::init_CMD(const Interpreter::Token*){
-    get()->init();
-}
-
 //parsing
 
 bool TelemetryLog::getline(char delim){
-    char curr = synthesisFile.read();
-    synthesisLineBuffer[0] = curr;
+    char curr = file.read();
+    buffer[0] = curr;
     uint_t i = 1;
-    while(i<PayloadOS_LogParseBufferSize && curr != delim && synthesisFile.available()){
-        curr = synthesisFile.read();
-        synthesisLineBuffer[i] = curr;
+    while(i<PayloadOS_LogParseBufferSize && curr != delim && file.available()){
+        curr = file.read();
+        buffer[i] = curr;
         i++;
     }
-    synthesisPos = synthesisLineBuffer;
-    return !synthesisFile.available();
+    pos = buffer;
+    return !file.available();
 }
 
 float_t TelemetryLog::getFloat(){
     float_t value = 0;
     removeWhitespace();
     bool neg = false;
-    if(*synthesisPos == '-') {
+    if(*pos == '-') {
         neg = true;
-        synthesisPos++;
+        pos++;
     }
-    else if(!isNumeric(*synthesisPos)){
-        while(!isWhiteSpace(*synthesisPos)) synthesisPos++;
+    else if(!isNumeric(*pos)){
+        while(!isWhiteSpace(*pos)) pos++;
         return 0;
     }
-    while(isNumeric(*synthesisPos)){
+    while(isNumeric(*pos)){
         value*=10;
-        value += getDigit(*synthesisPos);
-        synthesisPos++;
+        value += getDigit(*pos);
+        pos++;
     }
-    if(*synthesisPos != '.') return (neg)? -value : value;
+    if(*pos != '.') return (neg)? -value : value;
     uint_t place = 1;
-    synthesisPos++;
-    while(isNumeric(*synthesisPos)){
-        value += negPow10(place) * getDigit(*synthesisPos);
-        synthesisPos++;
+    pos++;
+    while(isNumeric(*pos)){
+        value += negPow10(place) * getDigit(*pos);
+        pos++;
         place++;
     }
     return (neg)? -value : value;
@@ -397,10 +610,10 @@ float_t TelemetryLog::getFloat(){
 uint_t TelemetryLog::getUnsigned(){
     uint_t value = 0;
     removeWhitespace();
-    while(isNumeric(*synthesisPos)){
+    while(isNumeric(*pos)){
         value*=10;
-        value += getDigit(*synthesisPos);
-        synthesisPos++;
+        value += getDigit(*pos);
+        pos++;
     }
     return value;
 }
@@ -416,7 +629,7 @@ bool TelemetryLog::isNumeric(char c) {
 }
 
 void TelemetryLog::removeWhitespace(){
-    while(isWhiteSpace(*synthesisPos)) synthesisPos++;
+    while(isWhiteSpace(*pos)) pos++;
 }
 
 float_t TelemetryLog::negPow10(uint_t n){
