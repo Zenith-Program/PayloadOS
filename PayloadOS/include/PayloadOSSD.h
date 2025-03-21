@@ -24,16 +24,38 @@ namespace PayloadOS{
         enum class SDStates{
             None, Read, Write
         };
+
+        enum class SDFiles{
+            Synthesis, Telemetry, Event, SENTINAL_COUNT
+        };
         
         class TelemetryLog{
-            char fileName[PayloadOS_LogFileNameSize];
-            char buffer[PayloadOS_LogParseBufferSize];
-            uint_t flushPeriod;
-            uint_t flushCount;
-            SDStates state;
+            //general---------------
             SdFat sd;
-            FsFile file;
-            char* pos;
+            uint_t flushPeriod;
+            //----------------------
+
+            //Synthesis log---------
+            char synthesisFileName[PayloadOS_LogFileNameSize];
+            char synthesisLineBuffer[PayloadOS_LogParseBufferSize];
+            uint_t synthesisFlushCount;
+            SDStates synthesisState;
+            FsFile synthesisFile;
+            char* synthesisPos;
+            //----------------------
+
+            //Telemetry log----------
+            char telemetryFileName[PayloadOS_LogFileNameSize];
+            uint_t telemetryFlushCount;
+            FsFile telemetryFile;
+            //----------------------
+
+            //Event log-------------
+            char eventFileName[PayloadOS_LogFileNameSize];
+            uint_t eventFlushCount;
+            FsFile eventFlushCount;
+            //----------------------
+            
         public:
             //general
             error_t init();

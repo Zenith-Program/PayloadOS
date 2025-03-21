@@ -12,13 +12,13 @@ using namespace FlightData;
     EMPTY_VECTOR, EMPTY_VECTOR, EMPTY_VECTOR, EMPTY_VECTOR,  EMPTY_VECTOR,\
     EMPTY_VECTOR, EMPTY_VECTOR, EMPTY_VECTOR, EMPTY_VECTOR,  EMPTY_VECTOR,\
     0, {{0,0}, 0, 0, 0}}
-#define SPACE file.print(' ')
+#define SPACE synthesisFile.print(' ')
 #define Print_SPACE Serial.print(' ')
-#define NEWLINE file.println()
+#define NEWLINE synthesisFile.println()
 #define Print_NEWLINE Serial.println()
 #define CHECK_EOF if(!file.available()) {telemetry.endOfFile = true; return PayloadOS::GOOD;}
 
-TelemetryLog::TelemetryLog() : fileName(""), flushPeriod(4), flushCount(0), state(SDStates::None) {} 
+TelemetryLog::TelemetryLog() : flushPeriod(4), synthesisFileName(""), synthesisFlushCount(0), synthesisState(SDStates::None) {} 
 
 error_t TelemetryLog::init(){
     if(sd.begin(SD_CONFIG)) return PayloadOS::GOOD;
@@ -26,28 +26,28 @@ error_t TelemetryLog::init(){
 }
 
 error_t TelemetryLog::openForRead(){
-    if(std::strcmp(fileName, "") == 0) return PayloadOS::ERROR;
-    file.close();
-    state = SDStates::None;
-    file = sd.open(fileName, FILE_READ);
-    if(!file) return PayloadOS::ERROR;
-    state = SDStates::Read;
+    if(std::strcmp(synthesisFileName, "") == 0) return PayloadOS::ERROR;
+    synthesisFile.close();
+    synthesisState = SDStates::None;
+    synthesisFile = sd.open(synthesisFileName, FILE_READ);
+    if(!synthesisFile) return PayloadOS::ERROR;
+    synthesisState = SDStates::Read;
     return PayloadOS::GOOD;
 }
 
 error_t TelemetryLog::openForWrite(){
-    if(std::strcmp(fileName, "") == 0) return PayloadOS::ERROR;
-    file.close();
-    state = SDStates::None;
-    file = sd.open(fileName, FILE_WRITE);
-    if(!file) return PayloadOS::ERROR;
-    state = SDStates::Write;
+    if(std::strcmp(synthesisFileName, "") == 0) return PayloadOS::ERROR;
+    synthesisFile.close();
+    synthesisState = SDStates::None;
+    synthesisFile = sd.open(synthesisFileName, FILE_WRITE);
+    if(!synthesisFile) return PayloadOS::ERROR;
+    synthesisState = SDStates::Write;
     return PayloadOS::GOOD;
 }
 
 error_t TelemetryLog::close(){
-    file.close();
-    state = SDStates::None;
+    synthesisFile.close();
+    synthesisState = SDStates::None;
     return PayloadOS::GOOD;
 }
 
@@ -62,18 +62,18 @@ error_t TelemetryLog::setFlushPeriod(uint_t period){
 error_t TelemetryLog::setFileName(const char* newName){
     uint_t i;
     for(i=0; i<PayloadOS_LogFileNameSize && newName[i] != '\0'; i++)
-        fileName[i] = newName[i];
+        synthesisFileName[i] = newName[i];
     if(i == PayloadOS_LogFileNameSize){
-        fileName[i-1] = '\0';
+        synthesisFileName[i-1] = '\0';
         return PayloadOS::ERROR;
     } 
-    fileName[i] = '\0';
+    synthesisFileName[i] = '\0';
     return PayloadOS::GOOD;
 }
 
 //read
 error_t TelemetryLog::readLine(TelemetryData& telemetry){
-    if(!file.isOpen() || !file || state != SDStates::Read) return PayloadOS::ERROR;
+    if(!synthesisFile.isOpen() || !synthesisFile || synthesisState != SDStates::Read) return PayloadOS::ERROR;
     telemetry.endOfFile = getline();
     telemetry.time = getUnsigned();
     telemetry.state = getUnsigned();
@@ -148,22 +148,22 @@ void TelemetryLog::readGPS(TelemetryData& telemetry){
 }
 //write
 error_t TelemetryLog::logLine(){
-    if(!file.isOpen() || !file || state != SDStates::Write) return PayloadOS::ERROR;
-    file.print(millis());
+    if(!synthesisFile.isOpen() || !synthesisFile || synthesisState != SDStates::Write) return PayloadOS::ERROR;
+    synthesisFile.print(millis());
     SPACE;
-    file.print(static_cast<uint_t>(State::ProgramState::get()->getCurrentState()));
+    synthesisFile.print(static_cast<uint_t>(State::ProgramState::get()->getCurrentState()));
     SPACE;
-    file.print(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getAltitude_ft());
+    synthesisFile.print(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getAltitude_ft());
     SPACE;
-    file.print(Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getAltitude_ft());
+    synthesisFile.print(Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getAltitude_ft());
     SPACE;
-    file.print(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getPressure_psi());
+    synthesisFile.print(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getPressure_psi());
     SPACE;
-    file.print(Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getPressure_psi());
+    synthesisFile.print(Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getPressure_psi());
     SPACE;
-    file.print(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getTemperature_F());
+    synthesisFile.print(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getTemperature_F());
     SPACE;
-    file.print(Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getTemperature_F());
+    synthesisFile.print(Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getTemperature_F());
     SPACE;
     logIMU(Peripherals::PeripheralSelector::get()->getPayloadIMU());
     SPACE;
@@ -175,55 +175,55 @@ error_t TelemetryLog::logLine(){
     SPACE;
     logIMU(Peripherals::PeripheralSelector::get()->getSTEMnaut4());
     SPACE;
-    file.print(Peripherals::PeripheralSelector::get()->getPowerCheck()->getVoltage());
+    synthesisFile.print(Peripherals::PeripheralSelector::get()->getPowerCheck()->getVoltage());
     SPACE;
     logGPS();
     NEWLINE;
-    if(flushCount == flushPeriod){
-        file.flush();
-        flushCount = 0;
+    if(synthesisFlushCount == flushPeriod){
+        synthesisFile.flush();
+        synthesisFlushCount = 0;
     }
     else{
-        flushCount++;
+        synthesisFlushCount++;
     }
-    if(file) return PayloadOS::GOOD;
+    if(synthesisFile) return PayloadOS::GOOD;
     return PayloadOS::ERROR;
 }
 
 void TelemetryLog::logIMU(Peripherals::IMUInterface* imu){
     Peripherals::LinearVector v = imu->getAcceleration_ft_s2();
-    file.print(v.x);
+    synthesisFile.print(v.x);
     SPACE;
-    file.print(v.y);
+    synthesisFile.print(v.y);
     SPACE;
-    file.print(v.z);
+    synthesisFile.print(v.z);
     SPACE;
     Peripherals::RotationVector u = imu->getAngularVelocity_deg_s();
-    file.print(u.x_rot);
+    synthesisFile.print(u.x_rot);
     SPACE;
-    file.print(u.y_rot);
+    synthesisFile.print(u.y_rot);
     SPACE;
-    file.print(u.z_rot);
+    synthesisFile.print(u.z_rot);
     SPACE;
     v = imu->getGravityVector();
-    file.print(v.x);
+    synthesisFile.print(v.x);
     SPACE;
-    file.print(v.y);
+    synthesisFile.print(v.y);
     SPACE;
-    file.print(v.z);
+    synthesisFile.print(v.z);
 }
 
 void TelemetryLog::logGPS(){
     Peripherals::GPSData data = Peripherals::PeripheralSelector::get()->getGPS()->getData();
-    file.print(data.position.x);
+    synthesisFile.print(data.position.x);
     SPACE;
-    file.print(data.position.y);
+    synthesisFile.print(data.position.y);
     SPACE;
-    file.print(data.altitude);
+    synthesisFile.print(data.altitude);
     SPACE;
-    file.print(data.satalites);
+    synthesisFile.print(data.satalites);
     SPACE;
-    file.print(data.fixAge);
+    synthesisFile.print(data.fixAge);
 }
 
 //singleton
@@ -235,12 +235,12 @@ TelemetryLog* TelemetryLog::get(){
 
 //commands
 void TelemetryLog::setName_CMD(const Interpreter::Token* args){
-    if(args[0].copyStringData(get()->fileName, PayloadOS_LogFileNameSize) == PayloadOS::ERROR) Serial.println("File name was truncated");
+    if(args[0].copyStringData(get()->synthesisFileName, PayloadOS_LogFileNameSize) == PayloadOS::ERROR) Serial.println("File name was truncated");
 }
 
 void TelemetryLog::displayFile_CMD(const Interpreter::Token*){
-    if(get()->openForRead() == PayloadOS::ERROR) Serial.printf("Could not open the file '%s'\n", get()->fileName);
-    Serial.printf("##### %s #####\n", get()->fileName);
+    if(get()->openForRead() == PayloadOS::ERROR) Serial.printf("Could not open the file '%s'\n", get()->synthesisFileName);
+    Serial.printf("##### %s #####\n", get()->synthesisFileName);
     TelemetryData telemetry;
 
     while(get()->readLine(telemetry) != PayloadOS::ERROR && !telemetry.endOfFile){
@@ -354,41 +354,41 @@ void TelemetryLog::init_CMD(const Interpreter::Token*){
 //parsing
 
 bool TelemetryLog::getline(char delim){
-    char curr = file.read();
-    buffer[0] = curr;
+    char curr = synthesisFile.read();
+    synthesisLineBuffer[0] = curr;
     uint_t i = 1;
-    while(i<PayloadOS_LogParseBufferSize && curr != delim && file.available()){
-        curr = file.read();
-        buffer[i] = curr;
+    while(i<PayloadOS_LogParseBufferSize && curr != delim && synthesisFile.available()){
+        curr = synthesisFile.read();
+        synthesisLineBuffer[i] = curr;
         i++;
     }
-    pos = buffer;
-    return !file.available();
+    synthesisPos = synthesisLineBuffer;
+    return !synthesisFile.available();
 }
 
 float_t TelemetryLog::getFloat(){
     float_t value = 0;
     removeWhitespace();
     bool neg = false;
-    if(*pos == '-') {
+    if(*synthesisPos == '-') {
         neg = true;
-        pos++;
+        synthesisPos++;
     }
-    else if(!isNumeric(*pos)){
-        while(!isWhiteSpace(*pos)) pos++;
+    else if(!isNumeric(*synthesisPos)){
+        while(!isWhiteSpace(*synthesisPos)) synthesisPos++;
         return 0;
     }
-    while(isNumeric(*pos)){
+    while(isNumeric(*synthesisPos)){
         value*=10;
-        value += getDigit(*pos);
-        pos++;
+        value += getDigit(*synthesisPos);
+        synthesisPos++;
     }
-    if(*pos != '.') return (neg)? -value : value;
+    if(*synthesisPos != '.') return (neg)? -value : value;
     uint_t place = 1;
-    pos++;
-    while(isNumeric(*pos)){
-        value += negPow10(place) * getDigit(*pos);
-        pos++;
+    synthesisPos++;
+    while(isNumeric(*synthesisPos)){
+        value += negPow10(place) * getDigit(*synthesisPos);
+        synthesisPos++;
         place++;
     }
     return (neg)? -value : value;
@@ -397,10 +397,10 @@ float_t TelemetryLog::getFloat(){
 uint_t TelemetryLog::getUnsigned(){
     uint_t value = 0;
     removeWhitespace();
-    while(isNumeric(*pos)){
+    while(isNumeric(*synthesisPos)){
         value*=10;
-        value += getDigit(*pos);
-        pos++;
+        value += getDigit(*synthesisPos);
+        synthesisPos++;
     }
     return value;
 }
@@ -416,7 +416,7 @@ bool TelemetryLog::isNumeric(char c) {
 }
 
 void TelemetryLog::removeWhitespace(){
-    while(isWhiteSpace(*pos)) pos++;
+    while(isWhiteSpace(*synthesisPos)) synthesisPos++;
 }
 
 float_t TelemetryLog::negPow10(uint_t n){
