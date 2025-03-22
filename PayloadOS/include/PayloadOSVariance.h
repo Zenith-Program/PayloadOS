@@ -18,8 +18,13 @@ namespace PayloadOS{
             void push(float_t);
             float_t getVariance(uint_t=0);
             float_t getStandardDeviation(uint_t=0);
+            float_t getIdentityCovariance(uint_t=0);
         private:
             void sort(uint_t, uint_t);
+            void sortDifferenceFromMean(uint_t, uint_t);
+            const float_t* circularAt(uint_t) const;
+            uint_t circularIndex(const float_t*) const;
+            float_t interpolate(const float_t*) const;
         };
 
         class AltimeterVariances{

@@ -34,6 +34,7 @@ void RunningVariance::push(float_t value){
     } 
 }
 
+
 float_t RunningVariance::getVariance(uint_t numOutliers){
     uint_t end = size;
     if(!filled) end = static_cast<uint_t>(current - values.data());
@@ -50,12 +51,16 @@ float_t RunningVariance::getVariance(uint_t numOutliers){
     return var;
 }
 
+
+
 float_t RunningVariance::getStandardDeviation(uint_t numOutliers){
     return std::sqrt(getVariance(numOutliers));
 }
 
+
+
 void RunningVariance::sort(uint_t start, uint_t end){
-    std::copy(values.begin(), values.end(), sorted.begin());
+    std::copy(values.begin()+start, values.begin()+end, sorted.begin());
     for(uint_t i=start; i<end; i++){
         uint_t smallest = i;
         for(uint_t j=i; j<end; j++)
@@ -64,6 +69,76 @@ void RunningVariance::sort(uint_t start, uint_t end){
         sorted[i] = sorted[smallest];
         sorted[smallest] = temp;
     }
+}
+
+
+float_t RunningVariance::getIdentityCovariance(uint_t numberOfOutliers){
+    uint_t windowSize = size;
+    if(!filled){
+        windowSize = static_cast<uint_t>(current - values.data());
+        numberOfOutliers = std::min(numberOfOutliers, windowSize/4); //at most 1/4 of data can be rejected
+    }
+    if(windowSize < 2) return 0;
+    float_t identityVariance = (windowSize-1)*(windowSize+1)/12.0; //variance of identity function
+    float_t identityMean = (windowSize-1)/2;
+    sortDifferenceFromMean(0,windowSize);
+    float_t dataMean = 0;
+    for(float_t* currentValue = values.data(); currentValue < values.data() + windowSize; currentValue++){
+        uint_t j;
+        for(j=0; j<numberOfOutliers && *currentValue != sorted[j]; j++);
+        if(j < numberOfOutliers) dataMean += interpolate(currentValue);
+        else dataMean += *currentValue;
+    }
+    dataMean /= windowSize;
+    float_t covariance = 0;
+    for(uint_t n = 0; n<windowSize; n++){
+        float_t usedValue = *circularAt(n);
+        uint_t j;
+        for(j=0; j<numberOfOutliers && usedValue != sorted[j]; j++);
+        if(j < numberOfOutliers) usedValue = interpolate(circularAt(n));
+        covariance += (usedValue - dataMean) * (n-identityMean);
+    }
+    covariance /= windowSize;
+    return covariance/identityVariance;
+}
+
+void RunningVariance::sortDifferenceFromMean(uint_t start, uint_t end){
+    std::copy(values.begin()+start, values.begin()+end, sorted.begin());
+    float_t mean = 0;
+    for(uint_t i=start; i<end; i++)
+        mean += values[i];
+    mean /= (end - start);
+
+    for(uint_t i=start; i<end; i++){
+        uint_t largest = i;
+        for(uint_t j=i; j<end; j++)
+            if(std::abs(sorted[j]-mean) > std::abs(sorted[largest]-mean)) largest = j;
+        float_t temp = sorted[i];
+        sorted[i] = sorted[largest];
+        sorted[largest] = temp;
+    }
+}
+
+const float_t* RunningVariance::circularAt(uint_t index) const{
+    index = index%size;
+    if(!filled) return values.data() + index;
+    uint_t zeroIndex = static_cast<uint_t>(current - values.data());
+    uint_t circularIndex = (zeroIndex + index)%size;
+    return values.data() + circularIndex;
+}
+
+float_t RunningVariance::interpolate(const float_t* value) const{
+    if(!filled && value == values.data()) return values[1];
+    if(value == circularAt(circularIndex(current)-1)) return *circularAt(circularIndex(current)-2);
+    if(value == current) return *circularAt(circularIndex(current)+1);
+    return (*circularAt(circularIndex(value)+size+1) + *circularAt(circularIndex(value)+size-1))/2;
+}
+
+uint_t RunningVariance::circularIndex(const float_t* value) const{
+    if(!filled) return static_cast<uint_t>(value-values.data());
+    uint_t zeroIndex = static_cast<uint_t>(current - values.data());
+    uint_t  absIndex = static_cast<uint_t>(value-values.data());
+    return (size + absIndex - zeroIndex)%size;
 }
 
 

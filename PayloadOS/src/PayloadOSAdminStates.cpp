@@ -29,14 +29,14 @@ void Debug::loop(){
     FlightData::AltimeterVariances::getAltimeter2()->push(altitude2);
     Serial.print("alt1: ");
     Serial.println(altitude);
-    Serial.print("alt2: ");
-    Serial.println(altitude2);
-    float_t variance = FlightData::AltimeterVariances::getAltimeter1()->getStandardDeviation();
-    float_t variance2 = FlightData::AltimeterVariances::getAltimeter1()->getStandardDeviation();
+    //Serial.print("alt2: ");
+    //Serial.println(altitude2);
+    float_t variance = FlightData::AltimeterVariances::getAltimeter1()->getIdentityCovariance(1);
+    float_t variance2 = FlightData::AltimeterVariances::getAltimeter2()->getIdentityCovariance(1);
     Serial.print("var1: ");
     Serial.println(variance);
-    Serial.print("var2: ");
-    Serial.println(variance2);
+    //Serial.print("var2: ");
+    //Serial.println(variance2);
 }
 void Debug::end(){
     Serial.println("Exited Debug Mode");
@@ -130,7 +130,7 @@ void Startup::init(){
 void Startup::loop(){
     Serial.println("Starting Up...");
     initAllPeripherals();
-    //FlightData::SDFiles::get()->init();
+    FlightData::SDFiles::get()->init();
     Serial.println("Startup Complete");
 }
 void Startup::end(){
