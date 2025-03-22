@@ -1,6 +1,7 @@
 #include "PayloadOSStateMachine.h"
 #include "PayloadOSSD.h"
 #include "PayloadOSVariance.h"
+#include "PayloadOSFlightParameters.h"
 #include <Arduino.h>
 #include <cstdio>
 
@@ -65,17 +66,20 @@ void Processing::loop(){
     float_t maxAccel1 = 0, maxAccel2 = 0, maxAccel3 = 0, maxAccel4 = 0;
     float_t previousAltitude = 0;
     uint_t line = 0;
+    uint_t previousTime = 0;
     //logs---------------
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
     //-------------------
     while(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->readLine(telemetry) != PayloadOS::ERROR && !telemetry.endOfFile){
         //time of landing
-        if(telemetry.state == static_cast<uint_t>(States::Ascent) && launchTime == 0) launchTime = telemetry.time;
+        float_t timeStamp = telemetry.time;
+        if(telemetry.state == static_cast<uint_t>(States::Ascent) && launchTime == 0) launchTime = timeStamp;
+        if(previousTime == 0) previousTime = timeStamp - ProgramState::get()->getPeriod() / 1000;
         //apogee
         float_t altitude =  (telemetry.altitude1 - FlightData::AltimeterVariances::getAltimeter1Zero() + telemetry.altitude2 - FlightData::AltimeterVariances::getAltimeter2Zero())/2.0;
         if(altitude > apogee) apogee = altitude;
         //maximum velocity
-        float_t velocity = (altitude - previousAltitude) / (ProgramState::get()->getPeriod() / 1000000.0);
+        float_t velocity = (altitude - previousAltitude) / (timeStamp - previousTime) * 1000;
         if(std::abs(velocity) > maxVelocity) maxVelocity = std::abs(velocity);
         previousAltitude = altitude;
         //update position
@@ -89,16 +93,17 @@ void Processing::loop(){
         if(acceleration1 > maxAccel2) maxAccel2 = acceleration2;
         if(acceleration1 > maxAccel3) maxAccel3 = acceleration3;
         if(acceleration1 > maxAccel4) maxAccel4 = acceleration4;
+        previousTime = timeStamp;
     }
     //logs---------------
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
     Serial.println("Finished first pass");
-    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logMessage("Finished first processing pass");
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Finished first processing pass");
     //------------------- 
     //landing velocity
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->close();
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->openForRead();
-    constexpr uint_t LookBackTime_ms = 3000;
+    uint_t LookBackTime_ms = FlightData::FlightParameters::get()->getData(FlightData::FlightParameterNames::MinimumLandingTime)->value * 1000;
     uint_t index;
     for(index = 0; index < line - LookBackTime_ms * 1000/State::ProgramState::get()->getPeriod(); index++)
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->readLine(telemetry);
@@ -119,7 +124,7 @@ void Processing::loop(){
     //logs---------------
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
     Serial.println("Finished second pass");
-    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logMessage("Finished second processing pass");
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Finished second processing pass");
     //------------------- 
     TransmittedData* data = Transmit::getData();
     data->apogee = apogee;
@@ -192,7 +197,7 @@ void Transmit::loop(){
             else nextStep = Transmissions::PayloadStatus;
             break;
         case Transmissions::FlightParameters:
-            std::snprintf(transmission, sizeof(transmission), "Apogee: %dft, Max velocity: %dft/s\n", 5, 7);
+            std::snprintf(transmission, sizeof(transmission), "Apogee: %.2fft, Max velocity: %.2fft/s\n", data->apogee, data->peakVelocity);
             if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::Landing;
             else nextStep = Transmissions::FlightParameters;
             break;

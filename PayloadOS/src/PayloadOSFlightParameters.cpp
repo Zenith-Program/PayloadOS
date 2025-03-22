@@ -50,12 +50,12 @@ FlightParameters::FlightParameters() : data(defaultInit()){}
 
 //default values----------------------------------------------
 #define FlightParameter_CovarianceWindowSize 16
-#define FlightParameter_UpwardMotionThreshold_ft_s 10
-#define FlightParameter_DownwardMotionThreshold_ft_s -5
+#define FlightParameter_UpwardMotionThreshold_ft_s 5
+#define FlightParameter_DownwardMotionThreshold_ft_s -1
 #define FlightParameter_LaunchResetTime_s 8
 #define FlightParameter_MinimumDescentTime_s 25
-#define FlightParameter_MinimumLandingTime_s 3
-#define FlightParameter_OutlierCount 0
+#define FlightParameter_MinimumLandingTime_s 1
+#define FlightParameter_OutlierCount 2
 //------------------------------------------------------------
 
 constexpr ParameterData FlightParameters::defaultInit(){

@@ -30,9 +30,10 @@ void ProgramState::nextState(bool ignorePause){
         }
     }
     if(next != currentState){
+        void (*exitPreviousState)() = states[getIndex(currentState)].end;
+        void (*enterNextState)() = states[getIndex(next)].init;
         currentState = next;
-        void (*enterNextState)() = states[getIndex(currentState)].init;
-        if(enterNextState == nullptr){
+        if(enterNextState == nullptr || exitPreviousState == nullptr){
             if(currentState == States::Fail){
                 //error message (cannot enter fail state)
                 while(1);
@@ -41,6 +42,7 @@ void ProgramState::nextState(bool ignorePause){
             initiateFailure();
             return;
         }
+        exitPreviousState();
         enterNextState();
     }
 }

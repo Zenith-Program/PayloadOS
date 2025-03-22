@@ -52,7 +52,7 @@
 
 #undef PayloadOS_altimeter
 #undef PayloadOS_IMU
-//#undef PayloadOS_lightAPRS_Tx
+#undef PayloadOS_lightAPRS_Tx
 #undef PayloadOS_lightAPRS_altimeter
 #undef PayloadOS_lightAPRS_GPS
 #undef PayloadOS_powerCheck
@@ -118,7 +118,7 @@
 #define PayloadOS_ChooseDataSim 1
 //------------------------------
 
-#define PayloadOS_DefaultSimulation PayloadOS_ChooseModelSim
+#define PayloadOS_DefaultSimulation PayloadOS_ChooseDataSim
 #define PayloadOS_ModelSim_ProcessOrder 5
 #define PayloadOS_ModelSimDefaultClockPeriod_us 50000
 #define PayloadOS_DataSimDefaultFileName "dataSim.txt"

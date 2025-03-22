@@ -7,6 +7,8 @@ using namespace PayloadOS;
 using namespace Simulation;
 using namespace Data;
 
+#define FEET_TO_METERS 0.3048
+
 error_t DataSim::start(){
     stop();
     if(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::HIL)->openForRead() == PayloadOS::ERROR) return PayloadOS::ERROR;
@@ -40,11 +42,11 @@ void DataSim::timerCallback(){
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::HIL)->readLine(data);
     //update flight data
     //altimeters
-    Peripherals::PeripheralSelector::get()->getPayloadAltimeterBackdoor()->setCurrentAltitude_m(data.altitude1);
+    Peripherals::PeripheralSelector::get()->getPayloadAltimeterBackdoor()->setCurrentAltitude_m(FEET_TO_METERS * data.altitude1); //other units may be a problem in the future
     Peripherals::PeripheralSelector::get()->getPayloadAltimeterBackdoor()->setCurrrentPressure_mBar(data.pressure1);
     Peripherals::PeripheralSelector::get()->getPayloadAltimeterBackdoor()->setCurrentTemperature_K(data.temperature1);
 
-    Peripherals::PeripheralSelector::get()->getLightAPRSAltimeterBackdoor()->setCurrentAltitude_m(data.altitude2);
+    Peripherals::PeripheralSelector::get()->getLightAPRSAltimeterBackdoor()->setCurrentAltitude_m(FEET_TO_METERS* data.altitude2);
     Peripherals::PeripheralSelector::get()->getLightAPRSAltimeterBackdoor()->setCurrrentPressure_mBar(data.pressure2);
     Peripherals::PeripheralSelector::get()->getLightAPRSAltimeterBackdoor()->setCurrentTemperature_K(data.temperature2);
 
