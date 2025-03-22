@@ -18,6 +18,7 @@ error_t DataSim::start(){
 error_t DataSim::stop(){
     stopTimer();
     isActive = false;
+    clearBackdoors();
     return FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::HIL)->close();
 }
 
@@ -88,6 +89,47 @@ void DataSim::initTimer(uint_t){
 
 void DataSim::stopTimer(){
     timer.end();
+}
+
+void DataSim::clearBackdoors(){
+    //altimeters
+    Peripherals::PeripheralSelector::get()->getPayloadAltimeterBackdoor()->setCurrentAltitude_m(0);
+    Peripherals::PeripheralSelector::get()->getPayloadAltimeterBackdoor()->setCurrrentPressure_mBar(0);
+    Peripherals::PeripheralSelector::get()->getPayloadAltimeterBackdoor()->setCurrentTemperature_K(0);
+
+    Peripherals::PeripheralSelector::get()->getLightAPRSAltimeterBackdoor()->setCurrentAltitude_m(0);
+    Peripherals::PeripheralSelector::get()->getLightAPRSAltimeterBackdoor()->setCurrrentPressure_mBar(0);
+    Peripherals::PeripheralSelector::get()->getLightAPRSAltimeterBackdoor()->setCurrentTemperature_K(0);
+
+    //IMU's
+    Peripherals::PeripheralSelector::get()->getPayloadIMUBackdoor()->setCurrentAcceleration_m_s2({0,0,0});
+    Peripherals::PeripheralSelector::get()->getPayloadIMUBackdoor()->setCurrentAngularVelocity_deg_s({0,0,0});
+    Peripherals::PeripheralSelector::get()->getPayloadIMUBackdoor()->setGravity({0,0,0});
+
+    Peripherals::PeripheralSelector::get()->getSTEMnaut1Backdoor()->setCurrentAcceleration_m_s2({0,0,0});
+    Peripherals::PeripheralSelector::get()->getSTEMnaut1Backdoor()->setCurrentAngularVelocity_deg_s({0,0,0});
+    Peripherals::PeripheralSelector::get()->getSTEMnaut1Backdoor()->setGravity({0,0,0});
+
+    Peripherals::PeripheralSelector::get()->getSTEMnaut2Backdoor()->setCurrentAcceleration_m_s2({0,0,0});
+    Peripherals::PeripheralSelector::get()->getSTEMnaut2Backdoor()->setCurrentAngularVelocity_deg_s({0,0,0});
+    Peripherals::PeripheralSelector::get()->getSTEMnaut2Backdoor()->setGravity({0,0,0});
+
+    Peripherals::PeripheralSelector::get()->getSTEMnaut3Backdoor()->setCurrentAcceleration_m_s2({0,0,0});
+    Peripherals::PeripheralSelector::get()->getSTEMnaut3Backdoor()->setCurrentAngularVelocity_deg_s({0,0,0});
+    Peripherals::PeripheralSelector::get()->getSTEMnaut3Backdoor()->setGravity({0,0,0});
+
+    Peripherals::PeripheralSelector::get()->getSTEMnaut4Backdoor()->setCurrentAcceleration_m_s2({0,0,0});
+    Peripherals::PeripheralSelector::get()->getSTEMnaut4Backdoor()->setCurrentAngularVelocity_deg_s({0,0,0});
+    Peripherals::PeripheralSelector::get()->getSTEMnaut4Backdoor()->setGravity({0,0,0});
+
+    //GPS
+    Peripherals::PeripheralSelector::get()->getGPSBackdoor()->setData({{0,0},0,0,0});
+
+    //Power
+    Peripherals::PeripheralSelector::get()->getPowerCheckBackdoor()->setPower(0);
+
+    //Switch
+    Peripherals::PeripheralSelector::get()->getArmSwitchBackdoor()->setState(false);
 }
 
 //commands-----------------------------------------------------

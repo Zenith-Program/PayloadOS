@@ -28,6 +28,7 @@ namespace PayloadOS{
                 void initTimer(uint_t);
                 void stopTimer();
                 static void timerCallback();
+                void clearBackdoors();
 
             public:
                 //singleton

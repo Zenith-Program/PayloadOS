@@ -131,6 +131,7 @@
  * PayloadOS_DefaultAnalysisFileName - default file that analysis files will be stored in
  * PayloadOS_DefaultBlackBoxFileName - default file that balck box files will be stored in
  * PayloadOS_DefaultEventFileName - default file that event logs will be stored in
+ * PayloadOS_DefaultToLiveMode - print variances live durring flight
 */
 
 #define PayloadOS_ConsoleBaudRate 115200
@@ -138,6 +139,5 @@
 #define PayloadOS_DefaultAnalysisFileName "analysis.txt"
 #define PayloadOS_DefaultBlackBoxFileName "blackBox.txt"
 #define PayloadOS_DefaultEventFileName "event.txt"
+#define PayloadOS_DefaultToLiveMode true
 
-/*
-*/

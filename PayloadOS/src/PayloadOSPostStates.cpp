@@ -21,8 +21,30 @@ STEMnaut survivability ^*
 
 //Processing State---------------------------------------------
 void Processing::init(){
+    //check that files are open
+    if(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->currentMode() != FlightData::SDStates::Write){
+        Serial.println("Opening event file");
+        if(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->openForWrite(FlightData::OpenTypes::End) == PayloadOS::ERROR){
+            Serial.println("Failed to open event file");
+        }
+        FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Had to re-open event file in Processing");
+    }
+    if(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->currentMode() != FlightData::SDStates::Write){
+        Serial.println("Opening blackBox file");
+        FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Had to re-open blackBox file in Processing");
+        if(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->openForWrite(FlightData::OpenTypes::End) == PayloadOS::ERROR){
+            Serial.println("Failed to open blackBox file");
+            FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Failed to reopen blackbox file");
+        }
+    }
+    //begin processing analysis file
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->close();
-    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->openForRead();
+    if(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->openForRead() == PayloadOS::ERROR){
+        Serial.println("Filed to open analysis file to read");
+        FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Failed to open analysis file for processing");
+    }
+    //messaging
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Payload began processing");
     Serial.println("Processing");
 }
 void Processing::loop(){
@@ -43,9 +65,12 @@ void Processing::loop(){
     float_t maxAccel1 = 0, maxAccel2 = 0, maxAccel3 = 0, maxAccel4 = 0;
     float_t previousAltitude = 0;
     uint_t line = 0;
+    //logs---------------
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
+    //-------------------
     while(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->readLine(telemetry) != PayloadOS::ERROR && !telemetry.endOfFile){
         //time of landing
-        if(telemetry.state == static_cast<uint_t>(States::Flight) && launchTime == 0) launchTime = telemetry.time;
+        if(telemetry.state == static_cast<uint_t>(States::Ascent) && launchTime == 0) launchTime = telemetry.time;
         //apogee
         float_t altitude =  (telemetry.altitude1 - FlightData::AltimeterVariances::getAltimeter1Zero() + telemetry.altitude2 - FlightData::AltimeterVariances::getAltimeter2Zero())/2.0;
         if(altitude > apogee) apogee = altitude;
@@ -64,7 +89,12 @@ void Processing::loop(){
         if(acceleration1 > maxAccel2) maxAccel2 = acceleration2;
         if(acceleration1 > maxAccel3) maxAccel3 = acceleration3;
         if(acceleration1 > maxAccel4) maxAccel4 = acceleration4;
-    }   
+    }
+    //logs---------------
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
+    Serial.println("Finished first pass");
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logMessage("Finished first processing pass");
+    //------------------- 
     //landing velocity
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->close();
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->openForRead();
@@ -86,6 +116,11 @@ void Processing::loop(){
             landingTime = telemetry.time;
         }
     }
+    //logs---------------
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
+    Serial.println("Finished second pass");
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logMessage("Finished second processing pass");
+    //------------------- 
     TransmittedData* data = Transmit::getData();
     data->apogee = apogee;
     data->temperature = temperature;
@@ -104,11 +139,16 @@ void Processing::loop(){
     data->survive4 = maxAccel4;
 }
 void Processing::end(){
-    //NOP
+    if(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->close() == PayloadOS::ERROR){
+        FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Failed to close analysis file after processing");
+        Serial.println("Failed to close analysis file");
+    }
 }
+
 State::States Processing::next(){
     return States::Transmit; //for now
 }
+
 const Interpreter::CommandList* Processing::getCommands(){
     static constexpr auto arr = std::array<Interpreter::Command, 0>{};
     static const Interpreter::CommandList list(&arr.front(), arr.size());
@@ -117,8 +157,27 @@ const Interpreter::CommandList* Processing::getCommands(){
 
 //Transmit State-----------------------------------------------
 void Transmit::init(){
-    Serial.println("transmit");
+    //check that files are open
+    if(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->currentMode() != FlightData::SDStates::Write){
+        Serial.println("Opening event file");
+        if(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->openForWrite(FlightData::OpenTypes::End) == PayloadOS::ERROR){
+            Serial.println("Failed to open event file");
+        }
+        FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Had to re-open event file in Transmission");
+    }
+    if(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->currentMode() != FlightData::SDStates::Write){
+        Serial.println("Opening blackBox file");
+        FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Had to re-open blackBox file in Transmission");
+        if(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->openForWrite(FlightData::OpenTypes::End) == PayloadOS::ERROR){
+            Serial.println("Failed to open blackBox file");
+            FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Failed to reopen blackbox file");
+        }
+    }
+    //initialize step
     currentStep = Transmissions::PayloadStatus;
+    //messaging
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Payload began transmitting");
+    Serial.println("Transmit");
 }
 void Transmit::loop(){
     char transmission[50];
@@ -168,11 +227,14 @@ void Transmit::loop(){
         }
         currentStep = nextStep;
     }
+    //log blackbox telemetry
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
 }
 
 void Transmit::end(){
-
+    //NOP
 }
+
 State::States Transmit::next(){
     if(currentStep == Transmissions::DONE) return States::Recovery;
     return States::Transmit;
@@ -190,20 +252,58 @@ TransmittedData Transmit::data = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 Transmissions Transmit::currentStep = Transmissions::PayloadStatus;
 
 //Recovery State----------------------------------------------------
+bool Recovery::recovered;
 void Recovery::init(){
-
+    recovered = false;
+    //check that files are open
+    if(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->currentMode() != FlightData::SDStates::Write){
+        Serial.println("Opening event file");
+        if(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->openForWrite(FlightData::OpenTypes::End) == PayloadOS::ERROR){
+            Serial.println("Failed to open event file");
+        }
+        FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Had to re-open event file in Processing");
+    }
+    if(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->currentMode() != FlightData::SDStates::Write){
+        Serial.println("Opening blackBox file");
+        FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Had to re-open blackBox file in Processing");
+        if(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->openForWrite(FlightData::OpenTypes::End) == PayloadOS::ERROR){
+            Serial.println("Failed to open blackBox file");
+            FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Failed to reopen blackbox file");
+        }
+    }
+    //messaging
+    Serial.println("Recovery");
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Payload is awaiting recovery");
 }
 void Recovery::loop(){
-    //NOP
+    //log blackbox telemetry
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
 }
 void Recovery::end(){
-
+    Serial.println("End of flight");
+    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Payload has been recovered");
+    if(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->close() == PayloadOS::ERROR){
+        Serial.println("Failed to close blackBox file");
+        FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Failed to close blackBox file");
+    }
+    if(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->close() == PayloadOS::ERROR){
+        Serial.println("Failed to close events file");
+    }
 }
 State::States Recovery::next(){
-    return States::Recovery; //for now
+    if(recovered) return States::Standby;
+    return States::Recovery;
 }
+
+//commands
 const Interpreter::CommandList* Recovery::getCommands(){
-    static constexpr auto arr = std::array<Interpreter::Command, 0>{};
+    static constexpr auto arr = std::array{
+        CMD{"recover", "", recover_c}
+    };
     static const Interpreter::CommandList list(&arr.front(), arr.size());
     return &list;
+}
+
+void Recovery::recover_c(const Interpreter::Token*){
+    recovered = true;
 }

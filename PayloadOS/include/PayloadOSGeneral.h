@@ -115,7 +115,7 @@ static_assert(PayloadOS_ModelSim_ProcessOrder>1, "The order defined by PayloadOS
 #endif
 
 #ifndef PayloadOS_DataSimDefaultFileName
-    static_assert(false, "PayloadOS_DataSimDefaultFileName must be deifned in the file PayloadOS.cfg.h")
+    static_assert(false, "PayloadOS_DataSimDefaultFileName must be deifned in the file PayloadOS.cfg.h");
 #endif
 
 #ifndef PayloadOS_DefaultSimulation
@@ -152,15 +152,21 @@ static_assert(PayloadOS_DefaultSamplePeriod>0, "The state machine & log sample r
 #endif
 
 #ifndef PayloadOS_DefaultAnalysisFileName
-    static_assert(false, "PayloadOS_DefaultAnalysisFileName must be deifned in the file PayloadOS.cfg.h")
+    static_assert(false, "PayloadOS_DefaultAnalysisFileName must be deifned in the file PayloadOS.cfg.h");
 #endif
 
 #ifndef PayloadOS_DefaultBlackBoxFileName
-    static_assert(false, "PayloadOS_DefaultBlackBoxFileNamee must be deifned in the file PayloadOS.cfg.h")
+    static_assert(false, "PayloadOS_DefaultBlackBoxFileNamee must be deifned in the file PayloadOS.cfg.h");
 #endif
 
 #ifndef PayloadOS_DefaultEventFileName
-    static_assert(false, "PayloadOS_DefaultEventFileName must be deifned in the file PayloadOS.cfg.h")
+    static_assert(false, "PayloadOS_DefaultEventFileName must be deifned in the file PayloadOS.cfg.h");
+#endif
+
+#ifndef PayloadOS_DefaultToLiveMode
+    static_assert(false, "PayloadOS_DefaultToLiveMode must be defined in the file PayloadOS.cfg.h");
+#else
+    static_assert(PayloadOS_DefaultToLiveMode == true || PayloadOS_DefaultToLiveMode == false, "PayloadOS_DefaultToLiveMode must be a boolean value");
 #endif
 
 

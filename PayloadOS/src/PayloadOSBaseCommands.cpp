@@ -4,6 +4,7 @@
 #include "PayloadOSPeripheralSelector.h"
 #include "PayloadOSConsoleInterpreter.h"
 #include "PayloadOSSimulation.h"
+#include "PayloadOSSD.h"
 
 using namespace PayloadOS;
 using namespace State;
@@ -29,6 +30,8 @@ const Interpreter::CommandList* ProgramState::getBaseCommands(){
         CMD{"hardware", "ww", hardware_C},
         CMD{"transmitRF", "s", transmitRF},
         CMD{"units", "w", units},
+        CMD{"eventFile", "w", FlightData::SDFiles::eventLogCntrl_c},
+        CMD{"messageEvent", "s", FlightData::SDFiles::logCustomEvent_c},
         CMD{"simulation", "", Simulation::SimulationTerminalInterface::getSim_c},
         CMD{"setSimulation", "w", Simulation::SimulationTerminalInterface::setSim_c}
     };

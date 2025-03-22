@@ -7,7 +7,7 @@
 namespace PayloadOS{
     namespace State{
         enum class States : uint_t{
-            Fail, Debug, Startup, Standby, Armed, Flight, Processing, Transmit, Recovery, SENTINAL_COUNT
+            Fail, Debug, Startup, Standby, Armed, Ascent, Descent, Landing, Processing, Transmit, Recovery, SENTINAL_COUNT
         };
         #define PayloadOS_NumberOfStates static_cast<std::size_t>(States::SENTINAL_COUNT)
 
@@ -58,7 +58,6 @@ namespace PayloadOS{
         };
 
         class Standby{
-            static bool armed;
             static bool debug;
         public:
             static void init();
@@ -68,40 +67,73 @@ namespace PayloadOS{
             static const Interpreter::CommandList* getCommands();
             //commands
             static void toDebug(const Interpreter::Token*);
-            static void softwareArm(const Interpreter::Token*);
-            static void softwareDisarm(const Interpreter::Token*);
         //helpers
         private:
 
         };
 
         class Armed{
-            static uint_t varianceSize;
-            static float_t launchThreshold;
             static bool armed;
+            static bool liveMode;
         public:
             static void init();
             static void loop();
             static void end();
             static State::States next();
             static const Interpreter::CommandList* getCommands();
+            //interface
+            static bool isArmed();
             //commands
             static void softwareDisarm(const Interpreter::Token*);
-            static void setVarSize(const Interpreter::Token*);
-            static void setThreshold(const Interpreter::Token*);
-            static void getVarSize(const Interpreter::Token*);
-            static void getThreshold(const Interpreter::Token*);
-
-            static constexpr uint_t defaultVarianceSize = 16;
-            static constexpr float_t defaultLaunchThreshold = 10;
-
+            static void softwareArm(const Interpreter::Token*);
+            static void liveMode_c(const Interpreter::Token*);
         //helpers
         private:
 
         };
 
-        class Flight{
-            static float_t landingThreshold;
+        class Ascent{
+            static bool liveMode;
+            static uint_t firstEntry;
+        public:
+            static void init();
+            static void loop();
+            static void end();
+            static State::States next();
+            static const Interpreter::CommandList* getCommands();
+            //interface
+            static void clearFirstEntry();
+            //commands
+            static void liveMode_c(const Interpreter::Token*);
+
+    
+        //helpers
+        private:
+    
+        };
+
+        class Descent{
+            static bool liveMode;
+            static uint_t firstEntry;
+        public:
+            static void init();
+            static void loop();
+            static void end();
+            static State::States next();
+            static const Interpreter::CommandList* getCommands();
+            //interface
+            static void clearFirstEntry();
+            //commands
+            static void liveMode_c(const Interpreter::Token*);
+    
+        //helpers
+        private:
+    
+        };
+
+        class Landing{
+            static bool liveMode;
+            static uint_t entryTime;
         public:
             static void init();
             static void loop();
@@ -109,8 +141,7 @@ namespace PayloadOS{
             static State::States next();
             static const Interpreter::CommandList* getCommands();
             //commands
-
-            static constexpr float_t defaultLandingThreshold = 7.5;
+            static void liveMode_c(const Interpreter::Token*);
     
         //helpers
         private:
@@ -169,6 +200,7 @@ namespace PayloadOS{
         };
 
         class Recovery{
+            static bool recovered;
         public:
             static void init();
             static void loop();
@@ -176,6 +208,7 @@ namespace PayloadOS{
             static State::States next();
             static const Interpreter::CommandList* getCommands();
             //commands
+            static void recover_c(const Interpreter::Token*);
 
         //helpers
         private:
@@ -242,7 +275,9 @@ namespace PayloadOS{
                     {"Startup",     Startup::init,      Startup::loop,      Startup::end,       Startup::next,      Startup::getCommands()},    //Startup
                     {"Standby",     Standby::init,      Standby::loop,      Standby::end,       Standby::next,      Standby::getCommands()},    //Standby
                     {"Armed",       Armed::init,        Armed::loop,        Armed::end,         Armed::next,        Armed::getCommands()},      //Armed
-                    {"Flight",      Flight::init,       Flight::loop,       Flight::end,        Flight::next,       Flight::getCommands()},     //Flight
+                    {"Ascent",      Ascent::init,       Ascent::loop,       Ascent::end,        Ascent::next,       Ascent::getCommands()},     //Ascent
+                    {"Descent",     Descent::init,      Descent::loop,      Descent::end,       Descent::next,      Descent::getCommands()},    //Descent
+                    {"Landing",     Landing::init,      Landing::loop,      Landing::end,       Landing::next,      Landing::getCommands()},    //Landing
                     {"Processing",  Processing::init,   Processing::loop,   Processing::end,    Processing::next,   Processing::getCommands()}, //Processing
                     {"Transmit",    Transmit::init,     Transmit::loop,     Transmit::end,      Transmit::next,     Transmit::getCommands()},   //Transmit
                     {"Recovery",    Recovery::init,     Recovery::loop,     Recovery::end,      Recovery::next,     Recovery::getCommands()},   //RRS

@@ -64,12 +64,10 @@ void Debug::exitDebug(const Interpreter::Token*){
 //Standby State----------------------------------------------------------------
 
 //global---------------------------------------
-bool Standby::armed = false;
 bool Standby::debug = false;
 //state table implementation-------------------
 void Standby::init(){
     debug = false;
-    armed = false;
     Serial.println("Standby");
 }
 void Standby::loop(){
@@ -80,7 +78,7 @@ void Standby::end(){
 }
 State::States Standby::next(){
     if(debug) return States::Debug;
-    if(armed && Peripherals::PeripheralSelector::get()->getArmSwitch()->isOn()) return States::Armed;
+    if(Armed::isArmed() && Peripherals::PeripheralSelector::get()->getArmSwitch()->isOn()) return States::Armed;
     return States::Standby;
 }
 
@@ -90,15 +88,13 @@ State::States Standby::next(){
 const Interpreter::CommandList* Standby::getCommands(){
     static constexpr auto arr = std::array{
         CMD{"debug", "", toDebug},
-        CMD{"arm", "", softwareArm},
-        CMD{"disarm", "", softwareDisarm},
+        CMD{"arm", "", Armed::softwareArm},
+        CMD{"disarm", "", Armed::softwareDisarm},
         CMD{"initSD", "", FlightData::SDFiles::init_c},
         CMD{"fileName", "w", FlightData::SDFiles::getFilename_c},
         CMD{"setFileName", "ws", FlightData::SDFiles::setFileName_C},
         CMD{"fileFlush", "w", FlightData::SDFiles::getFlushPeriod_c},
         CMD{"setFileFlush", "wu", FlightData::SDFiles::setFlushPeriod_c},
-        CMD{"eventFile", "w", FlightData::SDFiles::eventLogCntrl_c},
-        CMD{"messageEvent", "s", FlightData::SDFiles::logCustomEvent_c},
         CMD{"displayFile", "w", FlightData::SDFiles::displayFile_c},
         CMD{"zeroAltimeter1", "", FlightData::AltimeterVariances::zeroAltimeter1},
         CMD{"zeroAltimeter2", "", FlightData::AltimeterVariances::zeroAltimeter2},
@@ -111,12 +107,6 @@ const Interpreter::CommandList* Standby::getCommands(){
 
 void Standby::toDebug(const Interpreter::Token*){
     debug = true;
-}
-void Standby::softwareArm(const Interpreter::Token*){
-    armed = true;
-}
-void Standby::softwareDisarm(const Interpreter::Token*){
-    armed = false;
 }
 
 //Startup State----------------------------------------------------------------
@@ -142,17 +132,7 @@ State::States Startup::next(){
 
 //helpers--------------------------------------
 error_t Startup::initAllPeripherals(){
-    if(Peripherals::PeripheralSelector::get()->getArmSwitch()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    if(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    if(Peripherals::PeripheralSelector::get()->getPayloadIMU()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    if(Peripherals::PeripheralSelector::get()->getTransmitter()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    if(Peripherals::PeripheralSelector::get()->getGPS()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    if(Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    if(Peripherals::PeripheralSelector::get()->getSTEMnaut1()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    if(Peripherals::PeripheralSelector::get()->getSTEMnaut2()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    if(Peripherals::PeripheralSelector::get()->getSTEMnaut3()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    if(Peripherals::PeripheralSelector::get()->getSTEMnaut4()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    return PayloadOS::GOOD;
+    return Peripherals::PeripheralSelector::get()->initAll();
 }
 
 //commands-------------------------------------

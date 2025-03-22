@@ -24,6 +24,10 @@ namespace PayloadOS{
         enum class SDStates{
             None, Read, Write
         };
+
+        enum class OpenTypes{
+            New, End
+        };
         
         class TelemetryLog{
             SdFat* sd;
@@ -38,7 +42,7 @@ namespace PayloadOS{
             //general
             void setSDCard(SdFat*);
             error_t openForRead();
-            error_t openForWrite();
+            error_t openForWrite(OpenTypes = OpenTypes::New);
             error_t close();
             SDStates currentMode() const;
             //read

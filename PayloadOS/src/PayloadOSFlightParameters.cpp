@@ -51,8 +51,10 @@ FlightParameters::FlightParameters() : data(defaultInit()){}
 //default values----------------------------------------------
 #define FlightParameter_CovarianceWindowSize 16
 #define FlightParameter_UpwardMotionThreshold_ft_s 10
-#define FlightParameter_DownwardMotionThreshold_ft_s 5
-#define FlightParameter_LaunchResetTime_s 12
+#define FlightParameter_DownwardMotionThreshold_ft_s -5
+#define FlightParameter_LaunchResetTime_s 8
+#define FlightParameter_MinimumDescentTime_s 25
+#define FlightParameter_MinimumLandingTime_s 3
 #define FlightParameter_OutlierCount 0
 //------------------------------------------------------------
 
@@ -61,7 +63,9 @@ constexpr ParameterData FlightParameters::defaultInit(){
         {"covariance window size", FlightParameter_CovarianceWindowSize,FlightParameter_CovarianceWindowSize,""},
         {"upward motion threshold", FlightParameter_UpwardMotionThreshold_ft_s, FlightParameter_UpwardMotionThreshold_ft_s, "ft/s"},
         {"downward motion threshold", FlightParameter_DownwardMotionThreshold_ft_s, FlightParameter_DownwardMotionThreshold_ft_s, "ft/s"},
-        {"false start reset time", FlightParameter_LaunchResetTime_s, FlightParameter_LaunchResetTime_s, "s"},
+        {"minimum ascent time", FlightParameter_LaunchResetTime_s, FlightParameter_LaunchResetTime_s, "s"},
+        {"minimum descent time", FlightParameter_MinimumDescentTime_s, FlightParameter_MinimumDescentTime_s, "s"},
+        {"minimum landing time", FlightParameter_MinimumLandingTime_s, FlightParameter_MinimumLandingTime_s, "s"},
         {"covariance outlier count", FlightParameter_OutlierCount, FlightParameter_OutlierCount, ""}
     }};
 }

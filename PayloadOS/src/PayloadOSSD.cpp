@@ -148,7 +148,11 @@ void SDFiles::eventLogCntrl_c(const Interpreter::Token* args){
         return;
     }
     if(std::strcmp(type, "open") == 0){
-        get()->getLog(TelemetryLogs::Message)->openForWrite();
+        get()->getLog(TelemetryLogs::Message)->openForWrite(OpenTypes::End);
+        return;
+    }
+    if(std::strcmp(type, "new") == 0){
+        get()->getLog(TelemetryLogs::Message)->openForWrite(OpenTypes::New);
         return;
     }
     if(std::strcmp(type, "close") == 0){
@@ -157,7 +161,7 @@ void SDFiles::eventLogCntrl_c(const Interpreter::Token* args){
     }
     Serial.print("'");
     Serial.print(type);
-    Serial.println("' is not a valid argument. Choose 'get', 'open', or 'close'");
+    Serial.println("' is not a valid argument. Choose 'get', 'open', 'new', or 'close'");
 }
 
 void SDFiles::getFlushPeriod_c(const Interpreter::Token* args){
@@ -245,12 +249,14 @@ error_t TelemetryLog::openForRead(){
     return PayloadOS::GOOD;
 }
 
-error_t TelemetryLog::openForWrite(){
+error_t TelemetryLog::openForWrite(OpenTypes type){
+    oflag_t openFlag = O_WRITE | O_CREAT | O_TRUNC;
+    if(type == OpenTypes::End) openFlag = O_WRITE | O_CREAT | O_AT_END;
     if(std::strcmp(fileName, "") == 0) return PayloadOS::ERROR;
     file.close();
     state = SDStates::None;
     if(sd == nullptr) return PayloadOS::ERROR;
-    file = sd->open(fileName, O_WRITE | O_CREAT | O_TRUNC);
+    file = sd->open(fileName, openFlag);
     if(!file) return PayloadOS::ERROR;
     state = SDStates::Write;
     return PayloadOS::GOOD;
@@ -497,6 +503,13 @@ error_t TelemetryLog::logMessage(const char* message){
     file.print(millis());
     file.print("] ");
     file.println(message);
+    if(flushCount == flushPeriod){
+        file.flush();
+        flushCount = 0;
+    }
+    else{
+        flushCount++;
+    }
     return PayloadOS::GOOD;
 }
 
