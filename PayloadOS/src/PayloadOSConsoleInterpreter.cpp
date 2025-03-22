@@ -1,7 +1,7 @@
 #include "PayloadOSConsoleInterpreter.h"
 #include "PayloadOSConsoleIO.h"
 #include "PayloadOSCommandList.h"
-#include "PayloadOSModelSim.h"
+#include "PayloadOSSimulation.h"
 #include <cstring>
 #include <Arduino.h>
 
@@ -64,7 +64,7 @@ error_t ConsoleInterpreter::readLine() {
 	}
 	//search simulation list if not found
 	if(command == nullptr){
-		const Interpreter::CommandList* modelSimList = Simulation::Model::ModelSim::get()->getCommands();
+		const Interpreter::CommandList* modelSimList = Simulation::SimulationTerminalInterface::get()->getChosenCommands();
 		if(modelSimList != nullptr) command = modelSimList->getCommandWithName(commandBuffer);
 	}
 	//check that command was found 
@@ -112,8 +112,8 @@ void ConsoleInterpreter::printAvailableCommands() const {
     Serial.println("##### Base Commands #####");
     list = State::ProgramState::get()->getBaseCommands();
 	if(list != nullptr) list->printCommands();
-	Serial.println("##### Model Sim Commands #####");
-	list = Simulation::Model::ModelSim::get()->getCommands();
+	Serial.println("##### Simulation Commands #####");
+	list = Simulation::SimulationTerminalInterface::get()->getChosenCommands();
 	if(list != nullptr) list->printCommands();
 }
 

@@ -2,6 +2,9 @@
 
 #include "PayloadOS.cfg.h"
 
+#define PayloadOS_ChooseModelSim 0
+#define PayloadOS_ChooseDataSim 1
+
 //Macro checks-------------------------------------------------
 //types
 #ifndef PayloadOS_intType
@@ -114,6 +117,25 @@ static_assert(PayloadOS_ModelSim_ProcessOrder>1, "The order defined by PayloadOS
 #ifndef PayloadOS_DataSimDefaultFileName
     static_assert(false, "PayloadOS_DataSimDefaultFileName must be deifned in the file PayloadOS.cfg.h")
 #endif
+
+#ifndef PayloadOS_DefaultSimulation
+    static_assert(false, "PayloadOS_DefaultSimulation must be deifned in the file PayloadOS.cfg.h")
+#else
+    static_assert(PayloadOS_DefaultSimulation == PayloadOS_ChooseDataSim || PayloadOS_DefaultSimulation == PayloadOS_ChooseModelSim, "PayloadOS_DefaultSimulation must be deifned as PayloadOS_ChooseModelSim or PayloadOS_ChooseDataSim");
+#endif
+
+#ifndef PayloadOS_DataSimDefaultClockPeriod_us
+static_assert(false, "PayloadOS_DataSimDefaultClockPeriod_us must be defined in the file PayloadOS.cfg.h");
+#else
+static_assert(PayloadOS_DataSimDefaultClockPeriod_us>0, "The interval defined by PayloadOS_DataSimDefaultClockPeriod_us must be positive");
+#endif
+
+#ifndef PayloadOS_ModelSimDefaultClockPeriod_us
+static_assert(false, "PayloadOS_ModelSimDefaultClockPeriod_us must be defined in the file PayloadOS.cfg.h");
+#else
+static_assert(PayloadOS_ModelSimDefaultClockPeriod_us>0, "The interval defined by PayloadOS_ModelSimDefaultClockPeriod_us must be positive");
+#endif
+
 
 
 //other configurations

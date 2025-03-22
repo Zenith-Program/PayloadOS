@@ -148,9 +148,7 @@ ModelSim* ModelSim::get(){
 }
 
 
-ModelSim::ModelSim() : state(SimStates::Inactive), period(50000){ //1s default clk
-
-}
+ModelSim::ModelSim() : state(SimStates::Inactive), period(PayloadOS_ModelSimDefaultClockPeriod_us){}
 //helpers----------------------------------------------------------------------
 const char* ModelSim::getStateName(SimStates state){
     if(state == SimStates::Inactive) return "inactive";

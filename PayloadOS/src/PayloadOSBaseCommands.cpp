@@ -3,6 +3,7 @@
 #include <cstring>
 #include "PayloadOSPeripheralSelector.h"
 #include "PayloadOSConsoleInterpreter.h"
+#include "PayloadOSSimulation.h"
 
 using namespace PayloadOS;
 using namespace State;
@@ -27,7 +28,9 @@ const Interpreter::CommandList* ProgramState::getBaseCommands(){
         CMD{"read", "ww", read},
         CMD{"hardware", "ww", hardware_C},
         CMD{"transmitRF", "s", transmitRF},
-        CMD{"units", "w", units}
+        CMD{"units", "w", units},
+        CMD{"simulation", "", Simulation::SimulationTerminalInterface::getSim_c},
+        CMD{"setSimulation", "w", Simulation::SimulationTerminalInterface::setSim_c}
     };
     static const Interpreter::CommandList baseList(&base.front(), base.size());
     return &baseList; // for now

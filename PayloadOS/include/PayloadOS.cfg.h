@@ -102,13 +102,27 @@
 #define PayloadOS_STEMnautMagnetometerSamplePeriod 50
 
 /*Simulation configurations
+ * Not Modifiable Macros:
+ * PayloadOS_ChooseModelSim
+ * PayloadOS_ChooseDataSim
  * Macros:
+ * PayloadOS_DefaultSimulation - choose which simulation is the default
  * PayloadOS_ModelSim_ProcessOrder - order of the random process generator. Determines how complex the processes it generates are
+ * PayloadOS_ModelSimDefaultClockPeriod_us - default clock speed of model sim
  * PayloadOS_DataSimDefaultFileName - default file that dataSim will attempt to read from
+ * PayloadOS_DataSimDefaultClockPeriod_us - default clock speed of data sim
 */
 
+//------------------------------
+#define PayloadOS_ChooseModelSim 0
+#define PayloadOS_ChooseDataSim 1
+//------------------------------
+
+#define PayloadOS_DefaultSimulation PayloadOS_ChooseModelSim
 #define PayloadOS_ModelSim_ProcessOrder 5
+#define PayloadOS_ModelSimDefaultClockPeriod_us 50000
 #define PayloadOS_DataSimDefaultFileName "dataSim.txt"
+#define PayloadOS_DataSimDefaultClockPeriod_us 125000
 
 /*Other Configurations-----------------------------------------
  * Macros:
