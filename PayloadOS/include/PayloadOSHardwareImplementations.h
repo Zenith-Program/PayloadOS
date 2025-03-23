@@ -2,6 +2,7 @@
 #include "PayloadOSPeripheralInterfaces.h"
 #include "Adafruit_BNO055.h"
 #include "SparkFun_BNO080_Arduino_Library.h"
+#include "Adafruit_BNO08x.h"
 #include <MS5607.h>
 
 namespace PayloadOS{
@@ -149,7 +150,7 @@ namespace PayloadOS{
 
         class STEMnaut4Hardware : public Peripherals::IMUInterface{
             bool init_m;
-            BNO080 imu;
+            Adafruit_BNO08x imu;
             Peripherals::LinearVector acceleration;
             Peripherals::RotationVector angularVelocity;
             Peripherals::LinearVector gravity;
@@ -164,7 +165,7 @@ namespace PayloadOS{
             void printReport() override;
         private:
             bool updateReadings();
-            uint_t updateInitStatus();
+            error_t updateInitStatus();
             static const char* getResetMeaning(uint_t);
         };
 
