@@ -311,6 +311,7 @@ error_t IMUHardware::updateInitStatus(int_t code){
 
 
 //STEMnaut1----------------------------------------------------
+STEMnaut1Hardware::STEMnaut1Hardware() : init_m(false), imu(Adafruit_BNO08x()), acceleration(EmptyVector), angularVelocity(EmptyVector), gravity(EmptyVector){}
 
 Peripherals::LinearVector STEMnaut1Hardware::getAcceleration_m_s2(){
     updateReadings();
@@ -321,6 +322,7 @@ Peripherals::RotationVector STEMnaut1Hardware::getAngularVelocity_deg_s(){
     updateReadings();
     return angularVelocity;
 }
+
 Peripherals::LinearVector STEMnaut1Hardware::getGravityVector(){
     updateReadings();
     return gravity;
@@ -328,17 +330,13 @@ Peripherals::LinearVector STEMnaut1Hardware::getGravityVector(){
 
 error_t STEMnaut1Hardware::init(){
     Wire.begin();
-    if(!imu.begin(STEMnaut1Adress, Wire)){
+    if(!imu.begin_I2C(STEMnaut1Adress, &Wire)){
         return PayloadOS::ERROR;
     }
-    imu.modeOn();
+    imu.enableReport(SH2_LINEAR_ACCELERATION);
+    imu.enableReport(SH2_GYROSCOPE_CALIBRATED);
+    imu.enableReport(SH2_GRAVITY);
     init_m = true;
-    imu.enableLinearAccelerometer(PayloadOS_STEMnautAccelerometerSamplePeriod);
-    imu.enableGyro(PayloadOS_STEMnautGyroscopeSamplePeriod);
-    imu.enableGravity(PayloadOS_STEMnautMagnetometerSamplePeriod);
-    imu.calibrateAll();
-    delay(10);
-    imu.hasReset();
     return PayloadOS::GOOD;
 }
 
@@ -351,22 +349,17 @@ Peripherals::PeripheralStatus STEMnaut1Hardware::status(){
 
 error_t STEMnaut1Hardware::deInit(){
     init_m = false;
-    imu.modeSleep();
     return PayloadOS::GOOD;
 }
 
 void STEMnaut1Hardware::printReport(){
     Serial.println("Version: Hardware");
     Serial.print("Initialized: ");
-    uint_t resetCode = updateInitStatus();
+    error_t reset = updateInitStatus();
     Serial.println(init_m? "yes" : "no");
     //status
     Serial.print("Reset: ");
-    Serial.println(getResetMeaning(resetCode));
-    Serial.print("Incoming data: ");
-    Serial.println(imu.dataAvailable()? "yes" : "no");
-    Serial.print("Calibration: ");
-    Serial.println(imu.calibrationComplete()? "yes" : "no");
+    Serial.println((reset == PayloadOS::ERROR)? "yes" : "no");
     //readings
     Serial.print("Acceleration: ");
     if(Interpreter::ConsoleInterpreter::get()->getCurrentUnits()){
@@ -392,56 +385,45 @@ void STEMnaut1Hardware::printReport(){
 }
 
 bool STEMnaut1Hardware::updateReadings(){
-    if(imu.dataAvailable()){
-        uint8_t accuracy; //discard for now
-        imu.getLinAccel(acceleration.x, acceleration.y, acceleration.z, accuracy);
-        //Serial.println(accuracy);
-        imu.getGyro(angularVelocity.x_rot, angularVelocity.y_rot, angularVelocity.z_rot, accuracy);
-        //Serial.println(accuracy);
-        imu.getGravity(gravity.x, gravity.y, gravity.z, accuracy);
-        //Serial.println(accuracy);
-        Peripherals::IMUInterface::printLinear(gravity);
-        return true;
+    sh2_SensorValue_t sensorValue;  
+    // Read the next available sensor event
+    while (imu.getSensorEvent(&sensorValue)) {
+        switch (sensorValue.sensorId) {
+            case SH2_LINEAR_ACCELERATION:
+                acceleration.x = sensorValue.un.linearAcceleration.x;
+                acceleration.y = sensorValue.un.linearAcceleration.y;
+                acceleration.z = sensorValue.un.linearAcceleration.z;
+                break;
+
+            case SH2_GYROSCOPE_CALIBRATED:
+                angularVelocity.x_rot = sensorValue.un.gyroscope.x;
+                angularVelocity.y_rot = sensorValue.un.gyroscope.y;
+                angularVelocity.z_rot = sensorValue.un.gyroscope.z;
+                break;
+
+            case SH2_GRAVITY:
+                gravity.x = sensorValue.un.gravity.x;
+                gravity.y = sensorValue.un.gravity.y;
+                gravity.z = sensorValue.un.gravity.z;
+                break;
+
+            default:
+                break;  // Ignore other sensor events
+        }
     }
-    return false;
+    return true;  // Data was read successfully
 }
 
-uint_t STEMnaut1Hardware::updateInitStatus(){
-    if(imu.hasReset()){
-        init_m = false;
-        return imu.resetReason();
+error_t STEMnaut1Hardware::updateInitStatus(){
+    if(imu.wasReset()){
+        //init_m = false;
+        return PayloadOS::ERROR;
     }
-    return 0;
-}
-
-const char* STEMnaut1Hardware::getResetMeaning(uint_t code){
-    switch(code){
-    case 0:
-        return "None";
-        break;
-    case 1:
-        return "POR";
-        break;
-    case 2:
-        return "Internal";
-        break;
-    case 3:
-        return "Watchdog";
-        break;
-    case 4:
-        return "External";
-        break;
-    case 5:
-        return "Other";
-        break;
-    default:
-        return "Undefined";
-        break;
-
-    }
+    return PayloadOS::GOOD;
 }
 
 //STEMnuat2----------------------------------------------------
+STEMnaut2Hardware::STEMnaut2Hardware() : init_m(false), imu(Adafruit_BNO08x()), acceleration(EmptyVector), angularVelocity(EmptyVector), gravity(EmptyVector){}
 
 Peripherals::LinearVector STEMnaut2Hardware::getAcceleration_m_s2(){
     updateReadings();
@@ -460,17 +442,13 @@ Peripherals::LinearVector STEMnaut2Hardware::getGravityVector(){
 
 error_t STEMnaut2Hardware::init(){
     Wire.begin();
-    if(!imu.begin(STEMnaut2Adress, Wire)){
+    if(!imu.begin_I2C(STEMnaut2Adress, &Wire)){
         return PayloadOS::ERROR;
     }
-    imu.modeOn();
+    imu.enableReport(SH2_LINEAR_ACCELERATION);
+    imu.enableReport(SH2_GYROSCOPE_CALIBRATED);
+    imu.enableReport(SH2_GRAVITY);
     init_m = true;
-    imu.enableLinearAccelerometer(PayloadOS_STEMnautAccelerometerSamplePeriod);
-    imu.enableGyro(PayloadOS_STEMnautGyroscopeSamplePeriod);
-    imu.enableGravity(PayloadOS_STEMnautMagnetometerSamplePeriod);
-    imu.calibrateAll();
-    delay(10);
-    imu.hasReset();
     return PayloadOS::GOOD;
 }
 
@@ -483,22 +461,17 @@ Peripherals::PeripheralStatus STEMnaut2Hardware::status(){
 
 error_t STEMnaut2Hardware::deInit(){
     init_m = false;
-    imu.modeSleep();
     return PayloadOS::GOOD;
 }
 
 void STEMnaut2Hardware::printReport(){
     Serial.println("Version: Hardware");
     Serial.print("Initialized: ");
-    uint_t resetCode = updateInitStatus();
+    error_t reset = updateInitStatus();
     Serial.println(init_m? "yes" : "no");
     //status
     Serial.print("Reset: ");
-    Serial.println(getResetMeaning(resetCode));
-    Serial.print("Incoming data: ");
-    Serial.println(imu.dataAvailable()? "yes" : "no");
-    Serial.print("Calibration: ");
-    Serial.println(imu.calibrationComplete()? "yes" : "no");
+    Serial.println((reset == PayloadOS::ERROR)? "yes" : "no");
     //readings
     Serial.print("Acceleration: ");
     if(Interpreter::ConsoleInterpreter::get()->getCurrentUnits()){
@@ -524,56 +497,45 @@ void STEMnaut2Hardware::printReport(){
 }
 
 bool STEMnaut2Hardware::updateReadings(){
-    if(imu.dataAvailable()){
-        uint8_t accuracy; //discard for now
-        imu.getLinAccel(acceleration.x, acceleration.y, acceleration.z, accuracy);
-        //Serial.println(accuracy);
-        imu.getGyro(angularVelocity.x_rot, angularVelocity.y_rot, angularVelocity.z_rot, accuracy);
-        //Serial.println(accuracy);
-        imu.getGravity(gravity.x, gravity.y, gravity.z, accuracy);
-        //Serial.println(accuracy);
-        Peripherals::IMUInterface::printLinear(gravity);
-        return true;
+    sh2_SensorValue_t sensorValue;  
+    // Read the next available sensor event
+    while (imu.getSensorEvent(&sensorValue)) {
+        switch (sensorValue.sensorId) {
+            case SH2_LINEAR_ACCELERATION:
+                acceleration.x = sensorValue.un.linearAcceleration.x;
+                acceleration.y = sensorValue.un.linearAcceleration.y;
+                acceleration.z = sensorValue.un.linearAcceleration.z;
+                break;
+
+            case SH2_GYROSCOPE_CALIBRATED:
+                angularVelocity.x_rot = sensorValue.un.gyroscope.x;
+                angularVelocity.y_rot = sensorValue.un.gyroscope.y;
+                angularVelocity.z_rot = sensorValue.un.gyroscope.z;
+                break;
+
+            case SH2_GRAVITY:
+                gravity.x = sensorValue.un.gravity.x;
+                gravity.y = sensorValue.un.gravity.y;
+                gravity.z = sensorValue.un.gravity.z;
+                break;
+
+            default:
+                break;  // Ignore other sensor events
+        }
     }
-    return false;
+    return true;  // Data was read successfully
 }
 
-uint_t STEMnaut2Hardware::updateInitStatus(){
-    if(imu.hasReset()){
-        init_m = false;
-        return imu.resetReason();
+error_t STEMnaut2Hardware::updateInitStatus(){
+    if(imu.wasReset()){
+        //init_m = false;
+        return PayloadOS::ERROR;
     }
-    return 0;
-}
-
-const char* STEMnaut2Hardware::getResetMeaning(uint_t code){
-    switch(code){
-    case 0:
-        return "None";
-        break;
-    case 1:
-        return "POR";
-        break;
-    case 2:
-        return "Internal";
-        break;
-    case 3:
-        return "Watchdog";
-        break;
-    case 4:
-        return "External";
-        break;
-    case 5:
-        return "Other";
-        break;
-    default:
-        return "Undefined";
-        break;
-
-    }
+    return PayloadOS::GOOD;
 }
 
 //STEMnaut3----------------------------------------------------
+STEMnaut3Hardware::STEMnaut3Hardware() : init_m(false), imu(Adafruit_BNO08x()), acceleration(EmptyVector), angularVelocity(EmptyVector), gravity(EmptyVector){}
 
 Peripherals::LinearVector STEMnaut3Hardware::getAcceleration_m_s2(){
     updateReadings();
@@ -592,17 +554,13 @@ Peripherals::LinearVector STEMnaut3Hardware::getGravityVector(){
 
 error_t STEMnaut3Hardware::init(){
     Wire1.begin();
-    if(!imu.begin(STEMnaut3Adress, Wire1)){
+    if(!imu.begin_I2C(STEMnaut3Adress, &Wire1)){
         return PayloadOS::ERROR;
     }
-    imu.modeOn();
+    imu.enableReport(SH2_LINEAR_ACCELERATION);
+    imu.enableReport(SH2_GYROSCOPE_CALIBRATED);
+    imu.enableReport(SH2_GRAVITY);
     init_m = true;
-    imu.enableLinearAccelerometer(PayloadOS_STEMnautAccelerometerSamplePeriod);
-    imu.enableGyro(PayloadOS_STEMnautGyroscopeSamplePeriod);
-    imu.enableGravity(PayloadOS_STEMnautMagnetometerSamplePeriod);
-    imu.calibrateAll();
-    delay(10);
-    imu.hasReset();
     return PayloadOS::GOOD;
 }
 
@@ -615,22 +573,17 @@ Peripherals::PeripheralStatus STEMnaut3Hardware::status(){
 
 error_t STEMnaut3Hardware::deInit(){
     init_m = false;
-    imu.modeSleep();
     return PayloadOS::GOOD;
 }
 
 void STEMnaut3Hardware::printReport(){
     Serial.println("Version: Hardware");
     Serial.print("Initialized: ");
-    uint_t resetCode = updateInitStatus();
+    error_t reset = updateInitStatus();
     Serial.println(init_m? "yes" : "no");
     //status
     Serial.print("Reset: ");
-    Serial.println(getResetMeaning(resetCode));
-    Serial.print("Incoming data: ");
-    Serial.println(imu.dataAvailable()? "yes" : "no");
-    Serial.print("Calibration: ");
-    Serial.println(imu.calibrationComplete()? "yes" : "no");
+    Serial.println((reset == PayloadOS::ERROR)? "yes" : "no");
     //readings
     Serial.print("Acceleration: ");
     if(Interpreter::ConsoleInterpreter::get()->getCurrentUnits()){
@@ -656,53 +609,41 @@ void STEMnaut3Hardware::printReport(){
 }
 
 bool STEMnaut3Hardware::updateReadings(){
-    if(imu.dataAvailable()){
-        uint8_t accuracy; //discard for now
-        imu.getLinAccel(acceleration.x, acceleration.y, acceleration.z, accuracy);
-        //Serial.println(accuracy);
-        imu.getGyro(angularVelocity.x_rot, angularVelocity.y_rot, angularVelocity.z_rot, accuracy);
-        //Serial.println(accuracy);
-        imu.getGravity(gravity.x, gravity.y, gravity.z, accuracy);
-        //Serial.println(accuracy);
-        Peripherals::IMUInterface::printLinear(gravity);
-        return true;
+    sh2_SensorValue_t sensorValue;  
+    // Read the next available sensor event
+    while (imu.getSensorEvent(&sensorValue)) {
+        switch (sensorValue.sensorId) {
+            case SH2_LINEAR_ACCELERATION:
+                acceleration.x = sensorValue.un.linearAcceleration.x;
+                acceleration.y = sensorValue.un.linearAcceleration.y;
+                acceleration.z = sensorValue.un.linearAcceleration.z;
+                break;
+
+            case SH2_GYROSCOPE_CALIBRATED:
+                angularVelocity.x_rot = sensorValue.un.gyroscope.x;
+                angularVelocity.y_rot = sensorValue.un.gyroscope.y;
+                angularVelocity.z_rot = sensorValue.un.gyroscope.z;
+                break;
+
+            case SH2_GRAVITY:
+                gravity.x = sensorValue.un.gravity.x;
+                gravity.y = sensorValue.un.gravity.y;
+                gravity.z = sensorValue.un.gravity.z;
+                break;
+
+            default:
+                break;  // Ignore other sensor events
+        }
     }
-    return false;
+    return true;  // Data was read successfully
 }
 
-uint_t STEMnaut3Hardware::updateInitStatus(){
-    if(imu.hasReset()){
-        init_m = false;
-        return imu.resetReason();
+error_t STEMnaut3Hardware::updateInitStatus(){
+    if(imu.wasReset()){
+        //init_m = false;
+        return PayloadOS::ERROR;
     }
-    return 0;
-}
-
-const char* STEMnaut3Hardware::getResetMeaning(uint_t code){
-    switch(code){
-    case 0:
-        return "None";
-        break;
-    case 1:
-        return "POR";
-        break;
-    case 2:
-        return "Internal";
-        break;
-    case 3:
-        return "Watchdog";
-        break;
-    case 4:
-        return "External";
-        break;
-    case 5:
-        return "Other";
-        break;
-    default:
-        return "Undefined";
-        break;
-
-    }
+    return PayloadOS::GOOD;
 }
 
 
@@ -817,35 +758,6 @@ error_t STEMnaut4Hardware::updateInitStatus(){
     }
     return PayloadOS::GOOD;
 }
-
-const char* STEMnaut4Hardware::getResetMeaning(uint_t code){
-    switch(code){
-    case 0:
-        return "None";
-        break;
-    case 1:
-        return "POR";
-        break;
-    case 2:
-        return "Internal";
-        break;
-    case 3:
-        return "Watchdog";
-        break;
-    case 4:
-        return "External";
-        break;
-    case 5:
-        return "Other";
-        break;
-    default:
-        return "Undefined";
-        break;
-
-    }
-}
-
-
 
 //GPS----------------------------------------------------------
 Peripherals::GPSData GPSHardware::getData(){

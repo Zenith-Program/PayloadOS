@@ -90,11 +90,12 @@ namespace PayloadOS{
 
         class STEMnaut1Hardware : public Peripherals::IMUInterface{
             bool init_m;
-            BNO080 imu;
+            Adafruit_BNO08x imu;
             Peripherals::LinearVector acceleration;
             Peripherals::RotationVector angularVelocity;
             Peripherals::LinearVector gravity;
         public:
+            STEMnaut1Hardware();
             Peripherals::LinearVector getAcceleration_m_s2() override;
             Peripherals::RotationVector getAngularVelocity_deg_s() override;
             Peripherals::LinearVector getGravityVector() override;
@@ -104,17 +105,17 @@ namespace PayloadOS{
             void printReport() override;
         private:
             bool updateReadings();
-            uint_t updateInitStatus();
-            static const char* getResetMeaning(uint_t);
+            error_t updateInitStatus();
         };
 
         class STEMnaut2Hardware : public Peripherals::IMUInterface{
             bool init_m;
-            BNO080 imu;
+            Adafruit_BNO08x imu;
             Peripherals::LinearVector acceleration;
             Peripherals::RotationVector angularVelocity;
             Peripherals::LinearVector gravity;
         public:
+            STEMnaut2Hardware();
             Peripherals::LinearVector getAcceleration_m_s2() override;
             Peripherals::RotationVector getAngularVelocity_deg_s() override;
             Peripherals::LinearVector getGravityVector() override;
@@ -124,17 +125,17 @@ namespace PayloadOS{
             void printReport() override;
         private:
             bool updateReadings();
-            uint_t updateInitStatus();
-            static const char* getResetMeaning(uint_t);
+            error_t updateInitStatus();
         };
 
         class STEMnaut3Hardware : public Peripherals::IMUInterface{
             bool init_m;
-            BNO080 imu;
+            Adafruit_BNO08x imu;
             Peripherals::LinearVector acceleration;
             Peripherals::RotationVector angularVelocity;
             Peripherals::LinearVector gravity;
         public:
+            STEMnaut3Hardware();
             Peripherals::LinearVector getAcceleration_m_s2() override;
             Peripherals::RotationVector getAngularVelocity_deg_s() override;
             Peripherals::LinearVector getGravityVector() override;
@@ -144,8 +145,7 @@ namespace PayloadOS{
             void printReport() override;
         private:
             bool updateReadings();
-            uint_t updateInitStatus();
-            static const char* getResetMeaning(uint_t);
+            error_t updateInitStatus();
         };
 
         class STEMnaut4Hardware : public Peripherals::IMUInterface{
@@ -166,7 +166,6 @@ namespace PayloadOS{
         private:
             bool updateReadings();
             error_t updateInitStatus();
-            static const char* getResetMeaning(uint_t);
         };
 
         class PowerCheckHardware : public Peripherals::PowerCheckInterface{
