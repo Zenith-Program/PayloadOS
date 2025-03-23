@@ -139,5 +139,5 @@
 #define PayloadOS_DefaultAnalysisFileName "analysis.txt"
 #define PayloadOS_DefaultBlackBoxFileName "blackBox.txt"
 #define PayloadOS_DefaultEventFileName "event.txt"
-#define PayloadOS_DefaultToLiveMode true
+#define PayloadOS_DefaultToLiveMode false
 

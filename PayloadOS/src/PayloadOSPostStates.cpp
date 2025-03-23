@@ -62,10 +62,12 @@ void Processing::loop(){
     //parsing-----------------------------------------------
     uint_t launchTime = 0, landingTime = 0;
     float_t apogee = 0;
+    FlightData::RunningVariance velocityVariance(FlightData::FlightParameters::get()->getData(FlightData::FlightParameterNames::CovarianceWindowSize)->value);
+    velocityVariance.clear();
     float_t maxVelocity = 0;
     float_t maxAccel1 = 0, maxAccel2 = 0, maxAccel3 = 0, maxAccel4 = 0;
-    float_t previousAltitude = 0;
     uint_t line = 0;
+    uint_t landingLine = 0;
     uint_t previousTime = 0;
     //logs---------------
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
@@ -79,10 +81,11 @@ void Processing::loop(){
         float_t altitude =  (telemetry.altitude1 - FlightData::AltimeterVariances::getAltimeter1Zero() + telemetry.altitude2 - FlightData::AltimeterVariances::getAltimeter2Zero())/2.0;
         if(altitude > apogee) apogee = altitude;
         //maximum velocity
-        float_t velocity = (altitude - previousAltitude) / (timeStamp - previousTime) * 1000;
+        velocityVariance.push(altitude);
+        float_t velocity = velocityVariance.getIdentityCovariance(FlightData::FlightParameters::get()->getData(FlightData::FlightParameterNames::OutlierCount)->value);
         if(std::abs(velocity) > maxVelocity) maxVelocity = std::abs(velocity);
-        previousAltitude = altitude;
         //update position
+        if(telemetry.state < static_cast<uint_t>(States::Landing)) landingLine = line;
         line++;
         //stemnaut accelerations
         float_t acceleration1 = Peripherals::IMUInterface::magnitude(telemetry.accel1);
@@ -95,27 +98,39 @@ void Processing::loop(){
         if(acceleration1 > maxAccel4) maxAccel4 = acceleration4;
         previousTime = timeStamp;
     }
+    maxVelocity *= (1000000.0/State::ProgramState::get()->getPeriod());
     //logs---------------
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
     Serial.println("Finished first pass");
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Finished first processing pass");
     //------------------- 
-    //landing velocity
+    //landing velocity & g-force
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->close();
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->openForRead();
-    uint_t LookBackTime_ms = FlightData::FlightParameters::get()->getData(FlightData::FlightParameterNames::MinimumLandingTime)->value * 1000;
+    uint_t landingDetectionTime_ms = FlightData::FlightParameters::get()->getData(FlightData::FlightParameterNames::MinimumLandingTime)->value * 1000;
+    uint_t LookBackTime_ms = 6*landingDetectionTime_ms;
     uint_t index;
-    for(index = 0; index < line - LookBackTime_ms * 1000/State::ProgramState::get()->getPeriod(); index++)
-    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->readLine(telemetry);
-    float_t altitude1 = (telemetry.altitude1 - FlightData::AltimeterVariances::getAltimeter1Zero() + telemetry.altitude2 - FlightData::AltimeterVariances::getAltimeter2Zero())/2.0;
-    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->readLine(telemetry);
-    float_t altitude0 = (telemetry.altitude1 - FlightData::AltimeterVariances::getAltimeter1Zero() + telemetry.altitude2 - FlightData::AltimeterVariances::getAltimeter2Zero())/2.0;
-    float_t landingVelocity = (altitude0 - altitude1)/(ProgramState::get()->getPeriod() / 1000000.0);
-    //sustained g-force
-    float_t landingG = Peripherals::IMUInterface::magnitude(telemetry.accel0);
+    //traverse to just before landing
+    for(index = 0; index < landingLine - LookBackTime_ms * 1000/State::ProgramState::get()->getPeriod(); index++){
+        FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->readLine(telemetry);
+    }
+    //get landing velocity from covariance just before landing
+    uint_t covarianceSize = landingDetectionTime_ms * 1000/State::ProgramState::get()->getPeriod();
+    velocityVariance.setSize(covarianceSize);
+    velocityVariance.clear();
+    for(uint_t i=0; i<covarianceSize; i++){
+        FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->readLine(telemetry);
+        float_t altitude = (telemetry.altitude1 - FlightData::AltimeterVariances::getAltimeter1Zero() + telemetry.altitude2 - FlightData::AltimeterVariances::getAltimeter2Zero())/2.0;
+        velocityVariance.push(altitude);
+    }
+    float_t landingVelocity = (1000000.0/State::ProgramState::get()->getPeriod()) * std::abs(velocityVariance.getIdentityCovariance(1));
+    //look for landing time
     landingTime = telemetry.time;
+    //look for landing G
+    float_t landingG = Peripherals::IMUInterface::magnitude(telemetry.accel0);
     while(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->readLine(telemetry) != PayloadOS::ERROR && !telemetry.endOfFile){
         float_t accel = Peripherals::IMUInterface::magnitude(telemetry.accel0);
+        //assuming landing is at peak g
         if(accel > landingG){ 
             landingG =  accel;
             landingTime = telemetry.time;
@@ -185,46 +200,54 @@ void Transmit::init(){
     Serial.println("Transmit");
 }
 void Transmit::loop(){
-    char transmission[50];
+    char transmission[256];
     constexpr float_t ACCELERATION_TOLERANCE = 9 * 9.8 / FEET_TO_M;
     TransmittedData* data = getData();
     Transmissions nextStep = currentStep;
+    float_t g1 = data->survive1 * FEET_TO_M / 9.8;
+    float_t g2 = data->survive2 * FEET_TO_M / 9.8;
+    float_t g3 = data->survive3 * FEET_TO_M / 9.8;
+    float_t g4 = data->survive4 * FEET_TO_M / 9.8;
+    const char* survived1 = (g1 < ACCELERATION_TOLERANCE)? "survived" : "was killed by";
+    const char* survived2 = (g2 < ACCELERATION_TOLERANCE)? "survived" : "was killed by";
+    const char* survived3 = (g3 < ACCELERATION_TOLERANCE)? "survived" : "was killed by";
+    const char* survived4 = (g4 < ACCELERATION_TOLERANCE)? "survived" : "was killed by";
     if(Peripherals::PeripheralSelector::get()->getTransmitter()->available()){
         switch(currentStep){
         case Transmissions::PayloadStatus:
-            std::snprintf(transmission, sizeof(transmission), "Time: %.2fs, Temp: %.2fF, Power %.2fV\n", data->timeOfLanding, data->temperature, data->power);
+            std::snprintf(transmission, sizeof(transmission), "The rocket 'Uncertainty' carrying the payload 'Brick' has landed\n");
             if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::FlightParameters;
             else nextStep = Transmissions::PayloadStatus;
             break;
         case Transmissions::FlightParameters:
-            std::snprintf(transmission, sizeof(transmission), "Apogee: %.2fft, Max velocity: %.2fft/s\n", data->apogee, data->peakVelocity);
-            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::Landing;
+            std::snprintf(transmission, sizeof(transmission), "Apogee was %.2fft, peak velocity was %.2fft/s, flight time was %.2fs, and batteries read %.2fV\n", data->apogee, data->peakVelocity, data->timeOfLanding, data->power);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::LandingtParameters;
             else nextStep = Transmissions::FlightParameters;
             break;
-        case Transmissions::Landing:
-            std::snprintf(transmission, sizeof(transmission), "Landing velocity: %.2fft/s, g-force: %.2fg\n", data->landingVelocity, data->landingG);
-            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut1;
-            else nextStep = Transmissions::Landing;
+        case Transmissions::LandingtParameters:
+            std::snprintf(transmission, sizeof(transmission), "Landing velocity was %.2fft/s with a g-force of %.2fg. The landing site has temperature of %.2fF\n", data->landingVelocity, data->landingG, data->temperature);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnauts;
+            else nextStep = Transmissions::LandingtParameters;
             break;
-        case Transmissions::STEMnaut1:
-            std::snprintf(transmission, sizeof(transmission), "STEMnaut1 g-force: %.2fg, Survived: %s\n", data->survive1 * FEET_TO_M / 9.8, (data->survive1 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
-            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut2;
-            else nextStep = Transmissions::STEMnaut1;
+        case Transmissions::STEMnauts:
+            std::snprintf(transmission, sizeof(transmission), "STEMnaut1 %s a peak g-force of %.2fg\nSTEMnaut2 %s a peak g-force of %.2fg\nSTEMnaut3 %s a peak g-force of %.2fg\nSTEMnaut4 %s a peak g-force of %.2fg\n", survived1, g1, survived2, g2, survived3, g3, survived4, g4);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::FlightParameters2;
+            else nextStep = Transmissions::STEMnauts;
             break;
-        case Transmissions::STEMnaut2:
-            std::snprintf(transmission, sizeof(transmission), "STEMnaut2 g-force: %.2fg, Survived: %s\n", data->survive2 * FEET_TO_M / 9.8, (data->survive2 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
-            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut3;
-            else nextStep = Transmissions::STEMnaut2;
+        case Transmissions::FlightParameters2:
+        std::snprintf(transmission, sizeof(transmission), "Apogee was %.2fft, peak velocity was %.2fft/s, flight time was %.2fs, and batteries read %.2fV\n", data->apogee, data->peakVelocity, data->timeOfLanding, data->power);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::LandingtParameters2;
+            else nextStep = Transmissions::FlightParameters2;
             break;
-        case Transmissions::STEMnaut3:
-            std::snprintf(transmission, sizeof(transmission), "STEMnaut3 g-force: %.2fg, Survived: %s\n", data->survive3 * FEET_TO_M / 9.8, (data->survive3 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
-            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut4;
-            else nextStep = Transmissions::STEMnaut3;
+        case Transmissions::LandingtParameters2:
+        std::snprintf(transmission, sizeof(transmission), "Landing velocity was %.2fft/s with a g-force of %.2fg. The landing site has temperature of %.2fF\n", data->landingVelocity, data->landingG, data->temperature);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnauts2;
+            else nextStep = Transmissions::LandingtParameters2;
             break;
-        case Transmissions::STEMnaut4:
-            std::snprintf(transmission, sizeof(transmission), "STEMnaut4 g-force: %.2fg, Survived: %s\n", data->survive4 * FEET_TO_M / 9.8, (data->survive4 * FEET_TO_M / 9.8 < ACCELERATION_TOLERANCE)? "yes" : "no");
+        case Transmissions::STEMnauts2:
+        std::snprintf(transmission, sizeof(transmission), "STEMnaut1 %s a peak g-force of %.2fg\nSTEMnaut2 %s a peak g-force of %.2fg\nSTEMnaut3 %s a peak g-force of %.2fg\nSTEMnaut4 %s a peak g-force of %.2fg\n", survived1, g1, survived2, g2, survived3, g3, survived4, g4);
             if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::DONE;
-            else nextStep = Transmissions::STEMnaut4;
+            else nextStep = Transmissions::STEMnauts2;
             break;
             default:
             nextStep = Transmissions::DONE;

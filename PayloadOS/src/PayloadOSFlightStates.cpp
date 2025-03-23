@@ -454,7 +454,6 @@ State::States Landing::next(){
         Serial.println(altimeter2Covariance);
     }
     //get thresholds
-    float_t upperThreshold = FlightData::FlightParameters::get()->getData(FlightData::FlightParameterNames::UpwardMotionThreshold)->value;
     float_t lowerThreshold = FlightData::FlightParameters::get()->getData(FlightData::FlightParameterNames::DownwardMotionThreshold)->value;
     //choose next state
     uint_t minimumExitTime = FlightData::FlightParameters::get()->getData(FlightData::FlightParameterNames::MinimumLandingTime)->value;

@@ -179,7 +179,7 @@ namespace PayloadOS{
         };
 
         enum class Transmissions{
-            PayloadStatus, FlightParameters, Landing, STEMnaut1, STEMnaut2, STEMnaut3, STEMnaut4, DONE
+            PayloadStatus, FlightParameters, LandingtParameters, STEMnauts, FlightParameters2, LandingtParameters2, STEMnauts2, DONE
         };
 
         class Transmit{
