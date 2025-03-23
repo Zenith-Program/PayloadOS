@@ -83,6 +83,7 @@ namespace PayloadOS{
             static const Interpreter::CommandList* getCommands();
             //interface
             static bool isArmed();
+            static void setArm(bool);
             //commands
             static void softwareDisarm(const Interpreter::Token*);
             static void softwareArm(const Interpreter::Token*);
@@ -179,12 +180,13 @@ namespace PayloadOS{
         };
 
         enum class Transmissions{
-            PayloadStatus, FlightParameters, LandingtParameters, STEMnauts, FlightParameters2, LandingtParameters2, STEMnauts2, DONE
+            Temperature, Apogee, Battery, Time, PeakVelocity, LandingVelocity, LandingG, STEMnaut1g, STEMnaut1Orientation, STEMnaut1Survivability, STEMnaut2g, STEMnaut2Orientation, STEMnaut2Survivability, STEMnaut3g, STEMnaut3Orientation, STEMnaut3Survivability, STEMnaut4g, STEMnaut4Orientation, STEMnaut4Survivability, DONE
         };
 
         class Transmit{
             static TransmittedData data;
             static Transmissions currentStep;
+            static uint_t transmissionCount;
         public:
             static void init();
             static void loop();

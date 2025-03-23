@@ -194,7 +194,8 @@ void Transmit::init(){
         }
     }
     //initialize step
-    currentStep = Transmissions::PayloadStatus;
+    currentStep = Transmissions::Temperature;
+    transmissionCount = 0;
     //messaging
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Payload began transmitting");
     Serial.println("Transmit");
@@ -208,46 +209,106 @@ void Transmit::loop(){
     float_t g2 = data->survive2 * FEET_TO_M / 9.8;
     float_t g3 = data->survive3 * FEET_TO_M / 9.8;
     float_t g4 = data->survive4 * FEET_TO_M / 9.8;
-    const char* survived1 = (g1 < ACCELERATION_TOLERANCE)? "survived" : "was killed by";
-    const char* survived2 = (g2 < ACCELERATION_TOLERANCE)? "survived" : "was killed by";
-    const char* survived3 = (g3 < ACCELERATION_TOLERANCE)? "survived" : "was killed by";
-    const char* survived4 = (g4 < ACCELERATION_TOLERANCE)? "survived" : "was killed by";
+    const char* survived1 = (g1 < ACCELERATION_TOLERANCE)? "survived" : "killed";
+    const char* survived2 = (g2 < ACCELERATION_TOLERANCE)? "survived" : "killed";
+    const char* survived3 = (g3 < ACCELERATION_TOLERANCE)? "survived" : "killed";
+    const char* survived4 = (g4 < ACCELERATION_TOLERANCE)? "survived" : "killed";
     if(Peripherals::PeripheralSelector::get()->getTransmitter()->available()){
         switch(currentStep){
-        case Transmissions::PayloadStatus:
-            std::snprintf(transmission, sizeof(transmission), "The rocket 'Uncertainty' carrying the payload 'Brick' has landed\n");
-            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::FlightParameters;
-            else nextStep = Transmissions::PayloadStatus;
+        case Transmissions::Temperature:
+            std::snprintf(transmission, sizeof(transmission), "Temp: %.2fF", data->temperature);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::Apogee;
+            else nextStep = Transmissions::Temperature;
             break;
-        case Transmissions::FlightParameters:
-            std::snprintf(transmission, sizeof(transmission), "Apogee was %.2fft, peak velocity was %.2fft/s, flight time was %.2fs, and batteries read %.2fV\n", data->apogee, data->peakVelocity, data->timeOfLanding, data->power);
-            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::LandingtParameters;
-            else nextStep = Transmissions::FlightParameters;
+        case Transmissions::Apogee:
+            std::snprintf(transmission, sizeof(transmission), "Apogee: %.2f", data->apogee);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::Battery;
+            else nextStep = Transmissions::Apogee;
             break;
-        case Transmissions::LandingtParameters:
-            std::snprintf(transmission, sizeof(transmission), "Landing velocity was %.2fft/s with a g-force of %.2fg. The landing site has temperature of %.2fF\n", data->landingVelocity, data->landingG, data->temperature);
-            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnauts;
-            else nextStep = Transmissions::LandingtParameters;
+        case Transmissions::Battery:
+            std::snprintf(transmission, sizeof(transmission), "Battery: %.2fV", data->power);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::Time;
+            else nextStep = Transmissions::Battery;
             break;
-        case Transmissions::STEMnauts:
-            std::snprintf(transmission, sizeof(transmission), "STEMnaut1 %s a peak g-force of %.2fg\nSTEMnaut2 %s a peak g-force of %.2fg\nSTEMnaut3 %s a peak g-force of %.2fg\nSTEMnaut4 %s a peak g-force of %.2fg\n", survived1, g1, survived2, g2, survived3, g3, survived4, g4);
-            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::FlightParameters2;
-            else nextStep = Transmissions::STEMnauts;
+        case Transmissions::Time:
+            std::snprintf(transmission, sizeof(transmission), "Flight time: %.2fs", data->timeOfLanding);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::PeakVelocity;
+            else nextStep = Transmissions::Time;
             break;
-        case Transmissions::FlightParameters2:
-        std::snprintf(transmission, sizeof(transmission), "Apogee was %.2fft, peak velocity was %.2fft/s, flight time was %.2fs, and batteries read %.2fV\n", data->apogee, data->peakVelocity, data->timeOfLanding, data->power);
-            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::LandingtParameters2;
-            else nextStep = Transmissions::FlightParameters2;
+        case Transmissions::PeakVelocity:
+            std::snprintf(transmission, sizeof(transmission), "Peak velocity: %.2fft/s", data->peakVelocity);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::LandingVelocity;
+            else nextStep = Transmissions::PeakVelocity;
             break;
-        case Transmissions::LandingtParameters2:
-        std::snprintf(transmission, sizeof(transmission), "Landing velocity was %.2fft/s with a g-force of %.2fg. The landing site has temperature of %.2fF\n", data->landingVelocity, data->landingG, data->temperature);
-            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnauts2;
-            else nextStep = Transmissions::LandingtParameters2;
+        case Transmissions::LandingVelocity:
+            std::snprintf(transmission, sizeof(transmission), "Landing velocity: %.2fft/s", data->landingVelocity);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::LandingG;
+            else nextStep = Transmissions::LandingVelocity;
             break;
-        case Transmissions::STEMnauts2:
-        std::snprintf(transmission, sizeof(transmission), "STEMnaut1 %s a peak g-force of %.2fg\nSTEMnaut2 %s a peak g-force of %.2fg\nSTEMnaut3 %s a peak g-force of %.2fg\nSTEMnaut4 %s a peak g-force of %.2fg\n", survived1, g1, survived2, g2, survived3, g3, survived4, g4);
+        case Transmissions::LandingG:
+            std::snprintf(transmission, sizeof(transmission), "Landing g-force: %.2f", data->landingG);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut1g;
+            else nextStep = Transmissions::LandingG;
+            break;
+        case Transmissions::STEMnaut1g:
+            std::snprintf(transmission, sizeof(transmission), "STEMnaut1 g: %.2fg", g1);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut1Orientation;
+            else nextStep = Transmissions::STEMnaut1g;
+            break;
+        case Transmissions::STEMnaut1Orientation:
+            std::snprintf(transmission, sizeof(transmission), "STEMnaut1 Orientation: %.2fdeg", data->Orientation1);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut1Survivability;
+            else nextStep = Transmissions::STEMnaut1Orientation;
+            break;
+        case Transmissions::STEMnaut1Survivability:
+            std::snprintf(transmission, sizeof(transmission), "STEMnaut1: %s", survived1);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut2g;
+            else nextStep = Transmissions::STEMnaut1Survivability;
+            break;
+        case Transmissions::STEMnaut2g:
+            std::snprintf(transmission, sizeof(transmission), "STEMnaut2 g: %.2fg", g2);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut2Orientation;
+            else nextStep = Transmissions::STEMnaut2g;
+            break;
+        case Transmissions::STEMnaut2Orientation:
+            std::snprintf(transmission, sizeof(transmission), "STEMnaut2 Orientation: %.2fdeg", data->Orientation2);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut2Survivability;
+            else nextStep = Transmissions::STEMnaut2Orientation;
+            break;
+        case Transmissions::STEMnaut2Survivability:
+            std::snprintf(transmission, sizeof(transmission), "STEMnaut2: %s", survived2);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut3g;
+            else nextStep = Transmissions::STEMnaut2Survivability;
+            break;
+        case Transmissions::STEMnaut3g:
+            std::snprintf(transmission, sizeof(transmission), "STEMnaut3 g: %.2fg", g3);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut3Orientation;
+            else nextStep = Transmissions::STEMnaut3g;
+            break;
+        case Transmissions::STEMnaut3Orientation:
+            std::snprintf(transmission, sizeof(transmission), "STEMnaut3 Orientation: %.2fdeg", data->Orientation3);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut3Survivability;
+            else nextStep = Transmissions::STEMnaut3Orientation;
+            break;
+        case Transmissions::STEMnaut3Survivability:
+            std::snprintf(transmission, sizeof(transmission), "STEMnaut3: %s", survived3);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut4g;
+            else nextStep = Transmissions::STEMnaut3Survivability;
+            break;
+        case Transmissions::STEMnaut4g:
+            std::snprintf(transmission, sizeof(transmission), "STEMnaut4 g: %.2fg", g4);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut4Orientation;
+            else nextStep = Transmissions::STEMnaut4g;
+            break;
+        case Transmissions::STEMnaut4Orientation:
+            std::snprintf(transmission, sizeof(transmission), "STEMnaut4 Orientation: %.2fdeg", data->Orientation4);
+            if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::STEMnaut4Survivability;
+            else nextStep = Transmissions::STEMnaut4Orientation;
+            break;
+        case Transmissions::STEMnaut4Survivability:
+            std::snprintf(transmission, sizeof(transmission), "STEMnaut4: %s", survived4);
             if(Peripherals::PeripheralSelector::get()->getTransmitter()->transmitString(transmission) == PayloadOS::GOOD) nextStep = Transmissions::DONE;
-            else nextStep = Transmissions::STEMnauts2;
+            else nextStep = Transmissions::STEMnaut4Survivability;
             break;
             default:
             nextStep = Transmissions::DONE;
@@ -258,13 +319,18 @@ void Transmit::loop(){
     //log blackbox telemetry
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
 }
-
+//Temperature, Apogee, Battery, Time, PeakVelocity, LandingVelocity, LandingG, STEMnaut1g, STEMnaut1Orientation, STEMnaut1Survivability, STEMnaut2g, STEMnaut2Orientation, STEMnaut2Survivability, STEMnaut3g, STEMnaut3Orientation, STEMnaut3Survivability, STEMnaut4g, STEMnaut4Orientation, STEMnaut4Survivability, DONE
 void Transmit::end(){
     //NOP
 }
 
 State::States Transmit::next(){
-    if(currentStep == Transmissions::DONE) return States::Recovery;
+    if(currentStep == Transmissions::DONE){
+        transmissionCount++;
+        currentStep = Transmissions::Temperature;
+        if(transmissionCount == FlightData::FlightParameters::get()->getData(FlightData::FlightParameterNames::NumTransmissions)->value)
+            return States::Recovery;
+    } 
     return States::Transmit;
 }
 const Interpreter::CommandList* Transmit::getCommands(){
@@ -277,7 +343,8 @@ TransmittedData* Transmit::getData(){
     return &data;
 }
 TransmittedData Transmit::data = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-Transmissions Transmit::currentStep = Transmissions::PayloadStatus;
+Transmissions Transmit::currentStep = Transmissions::Temperature;
+uint_t Transmit::transmissionCount;
 
 //Recovery State----------------------------------------------------
 bool Recovery::recovered;
@@ -334,4 +401,5 @@ const Interpreter::CommandList* Recovery::getCommands(){
 
 void Recovery::recover_c(const Interpreter::Token*){
     recovered = true;
+    Armed::setArm(false);
 }

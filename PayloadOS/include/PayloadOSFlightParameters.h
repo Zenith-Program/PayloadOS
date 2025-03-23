@@ -13,7 +13,7 @@ namespace PayloadOS{
         };
 
         enum class FlightParameterNames{
-            CovarianceWindowSize, UpwardMotionThreshold, DownwardMotionThreshold, MinimumAscentTime, MinimumDescentTime, MinimumLandingTime, OutlierCount, SENTINAL_COUNT
+            CovarianceWindowSize, UpwardMotionThreshold, DownwardMotionThreshold, MinimumAscentTime, MinimumDescentTime, MinimumLandingTime, OutlierCount, NumTransmissions, SENTINAL_COUNT
         };
 
         #define PayloadOS_NumberOfFlightParameters static_cast<uint_t>(FlightParameterNames::SENTINAL_COUNT)

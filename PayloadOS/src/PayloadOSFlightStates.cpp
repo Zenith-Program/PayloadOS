@@ -96,6 +96,10 @@ bool Armed::isArmed(){
  return armed;
 }
 
+void Armed::setArm(bool newState){
+    armed = newState;
+}
+
 //commands
 const Interpreter::CommandList* Armed::getCommands(){
     static constexpr auto arr = std::array{

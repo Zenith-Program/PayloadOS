@@ -56,6 +56,7 @@ FlightParameters::FlightParameters() : data(defaultInit()){}
 #define FlightParameter_MinimumDescentTime_s 25
 #define FlightParameter_MinimumLandingTime_s 1
 #define FlightParameter_OutlierCount 2
+#define FlightParameter_NumberOfTransmissions 3
 //------------------------------------------------------------
 
 constexpr ParameterData FlightParameters::defaultInit(){
@@ -66,7 +67,8 @@ constexpr ParameterData FlightParameters::defaultInit(){
         {"minimum ascent time", FlightParameter_LaunchResetTime_s, FlightParameter_LaunchResetTime_s, "s"},
         {"minimum descent time", FlightParameter_MinimumDescentTime_s, FlightParameter_MinimumDescentTime_s, "s"},
         {"minimum landing time", FlightParameter_MinimumLandingTime_s, FlightParameter_MinimumLandingTime_s, "s"},
-        {"covariance outlier count", FlightParameter_OutlierCount, FlightParameter_OutlierCount, ""}
+        {"covariance outlier count", FlightParameter_OutlierCount, FlightParameter_OutlierCount, ""},
+        {"number of transmissions", FlightParameter_NumberOfTransmissions, FlightParameter_NumberOfTransmissions, ""}
     }};
 }
 

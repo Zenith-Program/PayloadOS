@@ -395,11 +395,11 @@ bool STEMnaut1Hardware::updateReadings(){
     if(imu.dataAvailable()){
         uint8_t accuracy; //discard for now
         imu.getLinAccel(acceleration.x, acceleration.y, acceleration.z, accuracy);
-        Serial.println(accuracy);
+        //Serial.println(accuracy);
         imu.getGyro(angularVelocity.x_rot, angularVelocity.y_rot, angularVelocity.z_rot, accuracy);
-        Serial.println(accuracy);
+        //Serial.println(accuracy);
         imu.getGravity(gravity.x, gravity.y, gravity.z, accuracy);
-        Serial.println(accuracy);
+        //Serial.println(accuracy);
         Peripherals::IMUInterface::printLinear(gravity);
         return true;
     }
@@ -527,11 +527,11 @@ bool STEMnaut2Hardware::updateReadings(){
     if(imu.dataAvailable()){
         uint8_t accuracy; //discard for now
         imu.getLinAccel(acceleration.x, acceleration.y, acceleration.z, accuracy);
-        Serial.println(accuracy);
+        //Serial.println(accuracy);
         imu.getGyro(angularVelocity.x_rot, angularVelocity.y_rot, angularVelocity.z_rot, accuracy);
-        Serial.println(accuracy);
+        //Serial.println(accuracy);
         imu.getGravity(gravity.x, gravity.y, gravity.z, accuracy);
-        Serial.println(accuracy);
+        //Serial.println(accuracy);
         Peripherals::IMUInterface::printLinear(gravity);
         return true;
     }
@@ -659,11 +659,11 @@ bool STEMnaut3Hardware::updateReadings(){
     if(imu.dataAvailable()){
         uint8_t accuracy; //discard for now
         imu.getLinAccel(acceleration.x, acceleration.y, acceleration.z, accuracy);
-        Serial.println(accuracy);
+        //Serial.println(accuracy);
         imu.getGyro(angularVelocity.x_rot, angularVelocity.y_rot, angularVelocity.z_rot, accuracy);
-        Serial.println(accuracy);
+        //Serial.println(accuracy);
         imu.getGravity(gravity.x, gravity.y, gravity.z, accuracy);
-        Serial.println(accuracy);
+        //Serial.println(accuracy);
         Peripherals::IMUInterface::printLinear(gravity);
         return true;
     }
@@ -732,8 +732,11 @@ error_t STEMnaut4Hardware::init(){
     imu.modeOn();
     init_m = true;
     imu.enableLinearAccelerometer(PayloadOS_STEMnautAccelerometerSamplePeriod);
+    delayMicroseconds(I2C_DelayTime_us);
     imu.enableGyro(PayloadOS_STEMnautGyroscopeSamplePeriod);
+    delayMicroseconds(I2C_DelayTime_us);
     imu.enableGravity(PayloadOS_STEMnautMagnetometerSamplePeriod);
+    delayMicroseconds(I2C_DelayTime_us);
     imu.calibrateAll();
     delay(10);
     imu.hasReset();
@@ -790,15 +793,16 @@ void STEMnaut4Hardware::printReport(){
 }
 
 bool STEMnaut4Hardware::updateReadings(){
+    delayMicroseconds(I2C_DelayTime_us);
     if(imu.dataAvailable()){
         uint8_t accuracy; //discard for now
         imu.getLinAccel(acceleration.x, acceleration.y, acceleration.z, accuracy);
-        Serial.println(accuracy);
+        //Serial.println(accuracy);
         imu.getGyro(angularVelocity.x_rot, angularVelocity.y_rot, angularVelocity.z_rot, accuracy);
-        Serial.println(accuracy);
+        //Serial.println(accuracy);
         imu.getGravity(gravity.x, gravity.y, gravity.z, accuracy);
-        Serial.println(accuracy);
-        Peripherals::IMUInterface::printLinear(gravity);
+        //Serial.println(accuracy);
+        //Peripherals::IMUInterface::printLinear(gravity);
         return true;
     }
     return false;
