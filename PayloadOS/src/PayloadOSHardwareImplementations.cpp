@@ -387,7 +387,7 @@ void STEMnaut1Hardware::printReport(){
 bool STEMnaut1Hardware::updateReadings(){
     sh2_SensorValue_t sensorValue;  
     // Read the next available sensor event
-    while (imu.getSensorEvent(&sensorValue)) {
+    for(uint_t i=0; i<10 && imu.getSensorEvent(&sensorValue); i++) {
         switch (sensorValue.sensorId) {
             case SH2_LINEAR_ACCELERATION:
                 acceleration.x = sensorValue.un.linearAcceleration.x;
