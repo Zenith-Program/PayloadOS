@@ -154,6 +154,7 @@ Peripherals::LinearVector IMUHardware::getGravityVector(){
 
 error_t IMUHardware::init(){
     Wire1.begin();
+    Wire1.setTimeout(10);
     imu = Adafruit_BNO055(55, 0x28, &Wire1);
     if(imu.begin()){
         init_m = true;
