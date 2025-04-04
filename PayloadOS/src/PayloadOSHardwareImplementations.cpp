@@ -6,6 +6,7 @@
 using namespace PayloadOS;
 using namespace PayloadOS::Hardware;
 
+//I2C adresses
 #define AltimeterAdress 0x77
 #define LightAPRSAdress 0x38
 #define STEMnaut4Adress 0x4B
@@ -13,6 +14,7 @@ using namespace PayloadOS::Hardware;
 #define STEMnaut2Adress 0x4B
 #define STEMnaut1Adress 0x4A
 
+//transmitter defines
 #define LightAPRSSendSectionCommand 0x01
 #define LightAPRSADCCommand 0x02
 #define LightAPRSAltimeterCommand 0x03
@@ -29,6 +31,12 @@ using namespace PayloadOS::Hardware;
 #define LightAPRS_TX_MaxSize 256
 #define LightAPRS_ChunckSize 32
 
+//STEMnaut defines
+#define STEMnautLinearAccelerationReport 0x04
+#define STEMnautRotationalVelocityReport 0x05
+#define STEMnautGravityReport 0x06
+
+//general defines
 #define FalseStatus {0,0,0,0}
 #define EmptyVector {0,0,0}
 #define EmptyGPS {{0,0}, 0, 0, 0}
@@ -55,6 +63,8 @@ float_t AltimeterHardware::getTemperature_K(){
 }
 
 error_t AltimeterHardware::init(){
+    Wire.begin();
+    //Wire.setTimeout(10);
     int8_t error = altimeter.begin();
     if(error == 1){
         init_m = true;
@@ -65,6 +75,7 @@ error_t AltimeterHardware::init(){
 }
 
 Peripherals::PeripheralStatus AltimeterHardware::status(){
+    Wire.begin();
     bool responsive = false;
     Wire.beginTransmission(AltimeterAdress);
     if(Wire.endTransmission() == 0) responsive = true;
@@ -155,6 +166,7 @@ Peripherals::LinearVector IMUHardware::getGravityVector(){
 error_t IMUHardware::init(){
     Wire1.begin();
     Wire1.setTimeout(10);
+    Wire1.setClock(100000);
     imu = Adafruit_BNO055(55, 0x28, &Wire1);
     if(imu.begin()){
         init_m = true;
@@ -312,7 +324,7 @@ error_t IMUHardware::updateInitStatus(int_t code){
 
 
 //STEMnaut1----------------------------------------------------
-STEMnaut1Hardware::STEMnaut1Hardware() : init_m(false), imu(Adafruit_BNO08x()), acceleration(EmptyVector), angularVelocity(EmptyVector), gravity(EmptyVector){}
+STEMnaut1Hardware::STEMnaut1Hardware() : init_m(false), acceleration(EmptyVector), angularVelocity(EmptyVector), gravity(EmptyVector){}
 
 Peripherals::LinearVector STEMnaut1Hardware::getAcceleration_m_s2(){
     updateReadings();
@@ -331,20 +343,30 @@ Peripherals::LinearVector STEMnaut1Hardware::getGravityVector(){
 
 error_t STEMnaut1Hardware::init(){
     Wire.begin();
-    if(!imu.begin_I2C(STEMnaut1Adress, &Wire)){
+    //Wire.setTimeout(10);
+    if(checkConnection() == PayloadOS::ERROR){
+        init_m = false;
         return PayloadOS::ERROR;
     }
-    imu.enableReport(SH2_LINEAR_ACCELERATION);
-    imu.enableReport(SH2_GYROSCOPE_CALIBRATED);
-    imu.enableReport(SH2_GRAVITY);
+    if(enableReport(STEMnautLinearAccelerationReport, PayloadOS_STEMnautAccelerometerSamplePeriod*1000) == PayloadOS::ERROR){
+        init_m = false;
+        return PayloadOS::ERROR;
+    }
+    if(enableReport(STEMnautRotationalVelocityReport, PayloadOS_STEMnautGyroscopeSamplePeriod*1000) == PayloadOS::ERROR){
+        init_m = false;
+        return PayloadOS::ERROR;
+    }
+    if(enableReport(STEMnautGravityReport, PayloadOS_STEMnautMagnetometerSamplePeriod*1000) == PayloadOS::ERROR){
+        init_m = false;
+        return PayloadOS::ERROR;
+    }
     init_m = true;
     return PayloadOS::GOOD;
 }
 
 Peripherals::PeripheralStatus STEMnaut1Hardware::status(){
-    bool responsive = false;
-    Wire.beginTransmission(STEMnaut1Adress);
-    if(Wire.endTransmission() == 0) responsive = true;
+    Wire.begin();
+    bool responsive = checkConnection() == PayloadOS::GOOD;
     return {init_m, responsive, init_m && responsive, init_m && responsive}; //for now
 }
 
@@ -356,11 +378,7 @@ error_t STEMnaut1Hardware::deInit(){
 void STEMnaut1Hardware::printReport(){
     Serial.println("Version: Hardware");
     Serial.print("Initialized: ");
-    error_t reset = updateInitStatus();
     Serial.println(init_m? "yes" : "no");
-    //status
-    Serial.print("Reset: ");
-    Serial.println((reset == PayloadOS::ERROR)? "yes" : "no");
     //readings
     Serial.print("Acceleration: ");
     if(Interpreter::ConsoleInterpreter::get()->getCurrentUnits()){
@@ -385,41 +403,104 @@ void STEMnaut1Hardware::printReport(){
     Serial.println();
 }
 
-bool STEMnaut1Hardware::updateReadings(){
-    sh2_SensorValue_t sensorValue;  
-    // Read the next available sensor event
-    for(uint_t i=0; i<10 && imu.getSensorEvent(&sensorValue); i++) {
-        switch (sensorValue.sensorId) {
-            case SH2_LINEAR_ACCELERATION:
-                acceleration.x = sensorValue.un.linearAcceleration.x;
-                acceleration.y = sensorValue.un.linearAcceleration.y;
-                acceleration.z = sensorValue.un.linearAcceleration.z;
-                break;
-
-            case SH2_GYROSCOPE_CALIBRATED:
-                angularVelocity.x_rot = sensorValue.un.gyroscope.x;
-                angularVelocity.y_rot = sensorValue.un.gyroscope.y;
-                angularVelocity.z_rot = sensorValue.un.gyroscope.z;
-                break;
-
-            case SH2_GRAVITY:
-                gravity.x = sensorValue.un.gravity.x;
-                gravity.y = sensorValue.un.gravity.y;
-                gravity.z = sensorValue.un.gravity.z;
-                break;
-
-            default:
-                break;  // Ignore other sensor events
-        }
-    }
-    return true;  // Data was read successfully
+void STEMnaut1Hardware::updateReadings(){
+    for(uint_t i=0; i<10; i++) processReport();
 }
 
-error_t STEMnaut1Hardware::updateInitStatus(){
-    if(imu.wasReset()){
-        //init_m = false;
-        return PayloadOS::ERROR;
-    }
+bool STEMnaut1Hardware::processReport(){
+        Wire.requestFrom(STEMnaut1Adress, 4);  // Read only the header first
+        delayMicroseconds(TransmitterDelayTime_us);
+        if (Wire.available() < 4) return false;
+        uint16_t reportLength = Wire.read() | (Wire.read() << 8);
+        Wire.read();  // Sequence number (ignore)
+        uint8_t channel = Wire.read();
+    
+        if (channel != 0x03) return false;  // Ensure it's a sensor report
+    
+        // Read full report
+        Wire.requestFrom(STEMnaut1Adress, reportLength - 4);
+        delayMicroseconds(TransmitterDelayTime_us);
+        uint8_t report[512];
+        Serial.println("test");
+        for (uint8_t i = 0; i < reportLength - 4 && Wire.available(); i++) {
+            report[i] = Wire.read();
+        }
+    
+        uint8_t sensorType = report[0];
+        float x = *((float*)&report[4]);
+        float y = *((float*)&report[8]);
+        float z = *((float*)&report[12]);
+
+        if(sensorType == STEMnautLinearAccelerationReport){
+            acceleration.x = x;
+            acceleration.y = y;
+            acceleration.z = z;
+        }
+        else if(sensorType == STEMnautRotationalVelocityReport){
+            angularVelocity.x_rot = x;
+            angularVelocity.y_rot = y;
+            angularVelocity.z_rot = z;
+        }
+        else if(sensorType == STEMnautGravityReport){
+
+        }
+        return true;
+}
+
+error_t STEMnaut1Hardware::checkConnection(){
+    Wire.beginTransmission(STEMnaut1Adress);
+    if(Wire.endTransmission()!=0) return PayloadOS::ERROR;
+    return PayloadOS::GOOD;
+}
+
+error_t STEMnaut1Hardware::enableReport(uint8_t sensor, uint32_t interval_us){
+    Wire.beginTransmission(STEMnaut1Adress);
+    Wire.write(16);  // Packet length (16 bytes)
+    Wire.write(0);   // Packet length (continued)
+    Wire.write(0x02); // Channel (Control)
+    Wire.write(0x00); // Sequence number
+    Wire.write(0xFD); // Command: Set Feature
+    Wire.write(sensor); // Feature Report ID: Gravity Vector
+    uint8_t intervalBytes[4] = {static_cast<uint8_t>(interval_us >> 24), static_cast<uint8_t>(interval_us >> 16), static_cast<uint8_t>(interval_us >> 8), static_cast<uint8_t>(interval_us)};
+    Wire.write(intervalBytes[0]); // Report interval (50Hz = 20,000 µs)
+    Wire.write(intervalBytes[1]);
+    Wire.write(intervalBytes[2]);
+    Wire.write(intervalBytes[3]);
+    Wire.write(0x00); // Data-specific config (disabled)
+    Wire.write(0x00);
+    Wire.write(0x00); // Reserved
+    Wire.write(0x00);
+    Wire.write(0x00);
+    Wire.write(0x00);
+    if(Wire.endTransmission()!=0) return PayloadOS::ERROR;
+    return PayloadOS::GOOD;
+}
+
+/*
+Wire.beginTransmission(BNO080_ADDR);
+    Wire.write(16);  // Packet length (16 bytes)
+    Wire.write(0);   // Packet length (continued)
+    Wire.write(0x02); // Channel (Control)
+    Wire.write(0x00); // Sequence number
+    Wire.write(0xFD); // Command: Set Feature
+    Wire.write(0x05); // Feature Report ID: Gravity Vector
+    Wire.write(0xA0); // Report interval (50Hz = 20,000 µs)
+    Wire.write(0x86);
+    Wire.write(0x01);
+    Wire.write(0x00);
+    Wire.write(0x00); // Data-specific config (disabled)
+    Wire.write(0x00);
+    Wire.write(0x00); // Reserved
+    Wire.write(0x00);
+    Wire.write(0x00);
+    Wire.write(0x00);
+    Wire.endTransmission();
+*/
+
+error_t STEMnaut1Hardware::writeCommand(uint8_t* data, uint_t length){
+    Wire.beginTransmission(STEMnaut1Adress);
+    Wire.write(data, length);
+    if(Wire.endTransmission() != 0) return PayloadOS::ERROR;
     return PayloadOS::GOOD;
 }
 
@@ -443,6 +524,7 @@ Peripherals::LinearVector STEMnaut2Hardware::getGravityVector(){
 
 error_t STEMnaut2Hardware::init(){
     Wire.begin();
+    //Wire.setTimeout(10);
     if(!imu.begin_I2C(STEMnaut2Adress, &Wire)){
         return PayloadOS::ERROR;
     }
@@ -555,6 +637,7 @@ Peripherals::LinearVector STEMnaut3Hardware::getGravityVector(){
 
 error_t STEMnaut3Hardware::init(){
     Wire1.begin();
+    //Wire1.setTimeout(10);
     if(!imu.begin_I2C(STEMnaut3Adress, &Wire1)){
         return PayloadOS::ERROR;
     }
@@ -668,6 +751,7 @@ Peripherals::LinearVector STEMnaut4Hardware::getGravityVector(){
 
 error_t STEMnaut4Hardware::init(){
     Wire1.begin();
+    //Wire1.setTimeout(10);
     if(!imu.begin_I2C(STEMnaut4Adress, &Wire1)){
         return PayloadOS::ERROR;
     }
@@ -802,6 +886,7 @@ float_t Altimeter2Hardware::getTemperature_K(){
 
 error_t Altimeter2Hardware::init(){
     Wire2.begin();
+    //Wire2.setTimeout(10);
     init_m = true;
     return PayloadOS::GOOD;
 }
@@ -917,6 +1002,7 @@ bool TransmitterHardware::available(){
 
 error_t TransmitterHardware::init(){
     Wire2.begin();
+    //Wire2.setTimeout(10);
     Wire2.beginTransmission(LightAPRSAdress);
     Wire2.write(LightAPRSResetCommand);
     if(Wire2.endTransmission() != 0){
@@ -961,6 +1047,7 @@ float_t PowerCheckHardware::getVoltage(){
 
 error_t PowerCheckHardware::init(){
     Wire2.begin();
+    //Wire2.setTimeout(10);
     init_m = true;
     return PayloadOS::GOOD;
 }

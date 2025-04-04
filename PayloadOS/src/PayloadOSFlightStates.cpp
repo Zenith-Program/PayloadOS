@@ -462,7 +462,7 @@ State::States Landing::next(){
     //choose next state
     uint_t minimumExitTime = FlightData::FlightParameters::get()->getData(FlightData::FlightParameterNames::MinimumLandingTime)->value;
     if(millis() - entryTime < 1000 * minimumExitTime){
-        if(altimeter1Covariance < lowerThreshold || altimeter2Covariance < lowerThreshold){
+        if(altimeter1Covariance < lowerThreshold && altimeter2Covariance < lowerThreshold){
             //downwards motion
             Serial.println("False landing detected");
             FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Payload detected false landing");
