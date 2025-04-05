@@ -38,6 +38,8 @@
 
 #include "Adafruit_BNO08x.h"
 
+using namespace STEMnaut1Lib;
+
 static Adafruit_SPIDevice *spi_dev = NULL; ///< Pointer to SPI bus interface
 static int8_t _int_pin, _reset_pin;
 

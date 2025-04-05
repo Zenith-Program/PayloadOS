@@ -90,6 +90,7 @@ namespace PayloadOS{
 
         class STEMnaut1Hardware : public Peripherals::IMUInterface{
             bool init_m;
+            STEMnaut1Lib::Adafruit_BNO08x imu;
             Peripherals::LinearVector acceleration;
             Peripherals::RotationVector angularVelocity;
             Peripherals::LinearVector gravity;
@@ -103,16 +104,14 @@ namespace PayloadOS{
             error_t deInit()override;
             void printReport() override;
         private:
-            void updateReadings();
-            bool processReport();
             error_t checkConnection();
-            error_t enableReport(uint8_t, uint32_t);
-            error_t writeCommand(uint8_t*, uint_t);
+            bool updateReadings();
+            error_t updateInitStatus();
         };
 
         class STEMnaut2Hardware : public Peripherals::IMUInterface{
             bool init_m;
-            Adafruit_BNO08x imu;
+            STEMnaut1Lib::Adafruit_BNO08x imu;
             Peripherals::LinearVector acceleration;
             Peripherals::RotationVector angularVelocity;
             Peripherals::LinearVector gravity;
@@ -132,7 +131,7 @@ namespace PayloadOS{
 
         class STEMnaut3Hardware : public Peripherals::IMUInterface{
             bool init_m;
-            Adafruit_BNO08x imu;
+            STEMnaut1Lib::Adafruit_BNO08x imu;
             Peripherals::LinearVector acceleration;
             Peripherals::RotationVector angularVelocity;
             Peripherals::LinearVector gravity;
@@ -152,7 +151,7 @@ namespace PayloadOS{
 
         class STEMnaut4Hardware : public Peripherals::IMUInterface{
             bool init_m;
-            Adafruit_BNO08x imu;
+            STEMnaut1Lib::Adafruit_BNO08x imu;
             Peripherals::LinearVector acceleration;
             Peripherals::RotationVector angularVelocity;
             Peripherals::LinearVector gravity;

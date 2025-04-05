@@ -37,6 +37,7 @@
  *    @brief  Class that stores state and functions for interacting with
  *            the BNO08x 9-DOF Orientation IMU Fusion Breakout
  */
+namespace STEMnaut1Lib{
 class Adafruit_BNO08x {
 public:
   Adafruit_BNO08x(int8_t reset_pin = -1);
@@ -63,5 +64,6 @@ protected:
   sh2_Hal_t
       _HAL; ///< The struct representing the SH2 Hardware Abstraction Layer
 };
+}
 
 #endif
