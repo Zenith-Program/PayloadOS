@@ -70,7 +70,7 @@ void Processing::loop(){
     uint_t landingLine = 0;
     uint_t previousTime = 0;
     //logs---------------
-    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
+    //FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
     //-------------------
     while(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->readLine(telemetry) != PayloadOS::ERROR && !telemetry.endOfFile){
         //time of landing
@@ -100,7 +100,7 @@ void Processing::loop(){
     }
     maxVelocity *= (1000000.0/State::ProgramState::get()->getPeriod());
     //logs---------------
-    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
+    //FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
     Serial.println("Finished first pass");
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Finished first processing pass");
     //------------------- 
@@ -127,9 +127,9 @@ void Processing::loop(){
     //look for landing time
     landingTime = telemetry.time;
     //look for landing G
-    float_t landingG = Peripherals::IMUInterface::magnitude(telemetry.accel0);
+    float_t landingG = Peripherals::IMUInterface::magnitude(telemetry.accel1);//hack
     while(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->readLine(telemetry) != PayloadOS::ERROR && !telemetry.endOfFile){
-        float_t accel = Peripherals::IMUInterface::magnitude(telemetry.accel0);
+        float_t accel = Peripherals::IMUInterface::magnitude(telemetry.accel1);//hack
         //assuming landing is at peak g
         if(accel > landingG){ 
             landingG =  accel;
@@ -137,7 +137,7 @@ void Processing::loop(){
         }
     }
     //logs---------------
-    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
+    //FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
     Serial.println("Finished second pass");
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Message)->logMessage("Finished second processing pass");
     //------------------- 
@@ -317,7 +317,7 @@ void Transmit::loop(){
         currentStep = nextStep;
     }
     //log blackbox telemetry
-    FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
+    //FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
 }
 //Temperature, Apogee, Battery, Time, PeakVelocity, LandingVelocity, LandingG, STEMnaut1g, STEMnaut1Orientation, STEMnaut1Survivability, STEMnaut2g, STEMnaut2Orientation, STEMnaut2Survivability, STEMnaut3g, STEMnaut3Orientation, STEMnaut3Survivability, STEMnaut4g, STEMnaut4Orientation, STEMnaut4Survivability, DONE
 void Transmit::end(){

@@ -49,9 +49,14 @@ State::States Debug::next(){
 //helpers--------------------------------------
 
 //commands-------------------------------------
+void resumeAll(const Interpreter::Token*);
+void endAll(const Interpreter::Token*);
+
 const Interpreter::CommandList* Debug::getCommands(){
     static constexpr auto arr = std::array{
-        CMD{"exit", "", exitDebug}
+        CMD{"exit", "", exitDebug},
+        CMD{"endI2C", "", endAll},
+        CMD{"resumeI2C", "", resumeAll}
     };
     static const Interpreter::CommandList list(&arr.front(), arr.size());
     return &list;
@@ -59,6 +64,16 @@ const Interpreter::CommandList* Debug::getCommands(){
 
 void Debug::exitDebug(const Interpreter::Token*){
     exit = true;
+}
+
+void endAll(const Interpreter::Token*){
+    Wire.end();
+    Wire1.end();
+}
+
+void resumeAll(const Interpreter::Token*){
+    Wire.begin();
+    Wire1.begin();
 }
 
 //Standby State----------------------------------------------------------------

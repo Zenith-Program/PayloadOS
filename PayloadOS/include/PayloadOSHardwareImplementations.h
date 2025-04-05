@@ -1,7 +1,6 @@
 #pragma once
 #include "PayloadOSPeripheralInterfaces.h"
 #include "Adafruit_BNO055.h"
-#include "SparkFun_BNO080_Arduino_Library.h"
 #include "Adafruit_BNO08x.h"
 #include <MS5607.h>
 

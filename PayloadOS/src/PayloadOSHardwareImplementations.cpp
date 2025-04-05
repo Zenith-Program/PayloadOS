@@ -7,6 +7,7 @@ using namespace PayloadOS;
 using namespace PayloadOS::Hardware;
 
 //I2C adresses
+#define IMU_ADRESS 0x29
 #define AltimeterAdress 0x77
 #define LightAPRSAdress 0x38
 #define STEMnaut4Adress 0x4B
@@ -1015,8 +1016,8 @@ error_t PowerCheckHardware::updateReadings(){
     Wire2.requestFrom(LightAPRSAdress, sizeof(float));
     delayMicroseconds(I2C_DelayTime_us);
     float recived;
-    Wire2.readBytes((char*)&recived, sizeof(recived));
-    lastPower = static_cast<float_t>(recived);
+    if(Wire2.readBytes((char*)&recived, sizeof(recived) == sizeof(recived)))
+        lastPower = static_cast<float_t>(recived);
     return PayloadOS::GOOD;
 }
 
