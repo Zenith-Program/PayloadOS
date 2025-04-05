@@ -376,6 +376,7 @@ void TelemetryLog::readGPS(TelemetryData& telemetry){
     telemetry.gps.fixAge = getUnsigned();
 }
 //write
+#define POLL_TIME_US 10
 error_t TelemetryLog::logLine(){
     if(!file.isOpen() || !file || state != SDStates::Write) return PayloadOS::ERROR;
     file.print(millis());
@@ -383,28 +384,40 @@ error_t TelemetryLog::logLine(){
     file.print(static_cast<uint_t>(State::ProgramState::get()->getCurrentState()));
     SPACE;
     file.print(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getAltitude_ft());
+    //delayMicroseconds(POLL_TIME_US);
     SPACE;
     file.print(Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getAltitude_ft());
+    //delayMicroseconds(POLL_TIME_US);
     SPACE;
     file.print(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getPressure_psi());
+    //delayMicroseconds(POLL_TIME_US);
     SPACE;
     file.print(Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getPressure_psi());
+    //delayMicroseconds(POLL_TIME_US);
     SPACE;
     file.print(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getTemperature_F());
+    //delayMicroseconds(POLL_TIME_US);
     SPACE;
     file.print(Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getTemperature_F());
+    //delayMicroseconds(POLL_TIME_US);
     SPACE;
     logIMU(Peripherals::PeripheralSelector::get()->getPayloadIMU());
+    //delayMicroseconds(POLL_TIME_US);
     SPACE;
     logIMU(Peripherals::PeripheralSelector::get()->getSTEMnaut1());
+    //delayMicroseconds(POLL_TIME_US);
     SPACE;
     logIMU(Peripherals::PeripheralSelector::get()->getSTEMnaut2());
+    //delayMicroseconds(POLL_TIME_US);
     SPACE;
     logIMU(Peripherals::PeripheralSelector::get()->getSTEMnaut3());
+    //delayMicroseconds(POLL_TIME_US);
     SPACE;
     logIMU(Peripherals::PeripheralSelector::get()->getSTEMnaut4());
+    //delayMicroseconds(POLL_TIME_US);
     SPACE;
     file.print(Peripherals::PeripheralSelector::get()->getPowerCheck()->getVoltage());
+    //delayMicroseconds(POLL_TIME_US);
     SPACE;
     logGPS();
     NEWLINE;
@@ -421,6 +434,7 @@ error_t TelemetryLog::logLine(){
 
 void TelemetryLog::logIMU(Peripherals::IMUInterface* imu){
     Peripherals::LinearVector v = imu->getAcceleration_ft_s2();
+    //delayMicroseconds(POLL_TIME_US);
     file.print(v.x);
     SPACE;
     file.print(v.y);
@@ -428,6 +442,7 @@ void TelemetryLog::logIMU(Peripherals::IMUInterface* imu){
     file.print(v.z);
     SPACE;
     Peripherals::RotationVector u = imu->getAngularVelocity_deg_s();
+    //delayMicroseconds(POLL_TIME_US);
     file.print(u.x_rot);
     SPACE;
     file.print(u.y_rot);
@@ -435,6 +450,7 @@ void TelemetryLog::logIMU(Peripherals::IMUInterface* imu){
     file.print(u.z_rot);
     SPACE;
     v = imu->getGravityVector();
+    //delayMicroseconds(POLL_TIME_US);
     file.print(v.x);
     SPACE;
     file.print(v.y);
@@ -444,6 +460,7 @@ void TelemetryLog::logIMU(Peripherals::IMUInterface* imu){
 
 void TelemetryLog::logGPS(){
     Peripherals::GPSData data = Peripherals::PeripheralSelector::get()->getGPS()->getData();
+    //delayMicroseconds(POLL_TIME_US);
     file.print(data.position.x);
     SPACE;
     file.print(data.position.y);

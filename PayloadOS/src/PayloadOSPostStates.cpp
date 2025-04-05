@@ -127,9 +127,9 @@ void Processing::loop(){
     //look for landing time
     landingTime = telemetry.time;
     //look for landing G
-    float_t landingG = Peripherals::IMUInterface::magnitude(telemetry.accel1);//hack
+    float_t landingG = Peripherals::IMUInterface::magnitude(telemetry.accel0);//hack
     while(FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->readLine(telemetry) != PayloadOS::ERROR && !telemetry.endOfFile){
-        float_t accel = Peripherals::IMUInterface::magnitude(telemetry.accel1);//hack
+        float_t accel = Peripherals::IMUInterface::magnitude(telemetry.accel0);//hack
         //assuming landing is at peak g
         if(accel > landingG){ 
             landingG =  accel;

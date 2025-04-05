@@ -9,6 +9,8 @@
 using namespace PayloadOS;
 using namespace State;
 
+#define FLIGHT_STATES_SKIP_BLACKBOX
+
 //Armed--------------------------------------------------------
 bool Armed::armed = false;
 bool Armed::liveMode = false;
@@ -178,7 +180,9 @@ void Ascent::loop(){
     FlightData::AltimeterVariances::getAltimeter2()->push(altimeter2Reading);
     //log to blackbox and analysis files
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->logLine();
+    #ifndef FLIGHT_STATES_SKIP_BLACKBOX
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
+    #endif
     //live altimeter data
     if(liveMode){
         Serial.print("A1: ");
@@ -306,7 +310,9 @@ void Descent::loop(){
     FlightData::AltimeterVariances::getAltimeter2()->push(altimeter2Reading);
     //log to blackbox and analysis files
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->logLine();
+    #ifndef FLIGHT_STATES_SKIP_BLACKBOX
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
+    #endif
     //live altimeter data
     if(liveMode){
         Serial.print("A1: ");
@@ -432,7 +438,9 @@ void Landing::loop(){
     FlightData::AltimeterVariances::getAltimeter2()->push(altimeter2Reading);
     //log to blackbox and analysis files
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::Analysis)->logLine();
+    #ifndef FLIGHT_STATES_SKIP_BLACKBOX
     FlightData::SDFiles::get()->getLog(FlightData::TelemetryLogs::BlackBox)->logLine();
+    #endif
     //live altimeter data
     if(liveMode){
         Serial.print("A1: ");

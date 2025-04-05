@@ -45,6 +45,9 @@ using namespace PayloadOS::Hardware;
 #define KELVIN_TO_CELCIUS_BIAS 273.15
 #define PASCALS_TO_mBAR_SCALE 0.01
 
+#define MAX_ALTITUDE 10000
+#define MIN_ALTITUDE -500
+
 //Altimeter1---------------------------------------------------
 AltimeterHardware::AltimeterHardware() : altimeter(MS5607(AltimeterAdress)), init_m(false), lastAltitude(0), lastTemp(0), lastPressure(0){}
 
@@ -131,7 +134,9 @@ error_t AltimeterHardware::updateReadings(){
         if(millis() - lastUpdateTime > PayloadOS_AltimeterSamplePeriod){
             lastUpdateTime = millis();
             if(altimeter.readDigitalValue()){
-                lastAltitude = altimeter.getAltitude();
+                float_t newAltitude = altimeter.getAltitude();
+                if(newAltitude > MIN_ALTITUDE && newAltitude < MAX_ALTITUDE)
+                    lastAltitude = newAltitude;
                 lastTemp = altimeter.getTemperature();
                 lastPressure = altimeter.getPressure();
                 return PayloadOS::GOOD;
@@ -344,6 +349,7 @@ Peripherals::LinearVector STEMnaut1Hardware::getGravityVector(){
 
 error_t STEMnaut1Hardware::init(){
     Wire.begin();
+    Wire1.setClock(100000);
     //Wire.setTimeout(10);
     if(!imu.begin_I2C(STEMnaut1Adress, &Wire)){
         return PayloadOS::ERROR;
@@ -820,6 +826,7 @@ float_t Altimeter2Hardware::getTemperature_K(){
 
 error_t Altimeter2Hardware::init(){
     Wire2.begin();
+    Wire2.setClock(100000);
     //Wire2.setTimeout(10);
     init_m = true;
     return PayloadOS::GOOD;
@@ -867,7 +874,9 @@ error_t Altimeter2Hardware::updateReadings(){
         Wire2.readBytes((char*)&recived1, sizeof(recived1));
         Wire2.readBytes((char*)&recived2, sizeof(recived2));
         Wire2.readBytes((char*)&recived3, sizeof(recived3));
-        lastAltitude_m = static_cast<float_t>(recived1);
+        float_t newAltitude = static_cast<float_t>(recived1);
+        if(newAltitude > MIN_ALTITUDE && newAltitude < MAX_ALTITUDE)
+            lastAltitude_m = newAltitude;
         lastPressure_pa = static_cast<float_t>(recived2);
         lastTemperature_C = static_cast<float_t>(recived3);
         lastReadingTime = millis();
@@ -1007,7 +1016,7 @@ void PowerCheckHardware::printReport(){
     Serial.print(getVoltage());
     Serial.println("V");
 }
-
+#define MIN_POWER 4
 error_t PowerCheckHardware::updateReadings(){
     Wire2.beginTransmission(LightAPRSAdress);
     Wire2.write(LightAPRSADCCommand);
@@ -1016,8 +1025,9 @@ error_t PowerCheckHardware::updateReadings(){
     Wire2.requestFrom(LightAPRSAdress, sizeof(float));
     delayMicroseconds(I2C_DelayTime_us);
     float recived;
-    if(Wire2.readBytes((char*)&recived, sizeof(recived) == sizeof(recived)))
-        lastPower = static_cast<float_t>(recived);
+    Wire2.readBytes((char*)&recived, sizeof(recived));
+    float_t newPower = static_cast<float_t>(recived);
+    if(newPower > MIN_POWER) lastPower = newPower;
     return PayloadOS::GOOD;
 }
 

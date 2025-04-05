@@ -56,7 +56,7 @@ FlightParameters::FlightParameters() : data(defaultInit()){}
 #define FlightParameter_MinimumDescentTime_s 25
 #define FlightParameter_MinimumLandingTime_s 1
 #define FlightParameter_OutlierCount 2
-#define FlightParameter_NumberOfTransmissions 3
+#define FlightParameter_NumberOfTransmissions 2
 //------------------------------------------------------------
 
 constexpr ParameterData FlightParameters::defaultInit(){
