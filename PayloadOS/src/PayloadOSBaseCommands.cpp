@@ -5,6 +5,7 @@
 #include "PayloadOSConsoleInterpreter.h"
 #include "PayloadOSSimulation.h"
 #include "PayloadOSSD.h"
+#include "PayloadOSPersistent.h"
 
 using namespace PayloadOS;
 using namespace State;
@@ -33,7 +34,8 @@ const Interpreter::CommandList* ProgramState::getBaseCommands(){
         CMD{"eventFile", "w", FlightData::SDFiles::eventLogCntrl_c},
         CMD{"messageEvent", "s", FlightData::SDFiles::logCustomEvent_c},
         CMD{"simulation", "", Simulation::SimulationTerminalInterface::getSim_c},
-        CMD{"setSimulation", "w", Simulation::SimulationTerminalInterface::setSim_c}
+        CMD{"setSimulation", "w", Simulation::SimulationTerminalInterface::setSim_c},
+        CMD{"persistentMode", "w", Reset::Persistent::persistentMode_c}
     };
     static const Interpreter::CommandList baseList(&base.front(), base.size());
     return &baseList; // for now
@@ -42,9 +44,11 @@ const Interpreter::CommandList* ProgramState::getBaseCommands(){
 void ProgramState::echo(const Interpreter::Token*){
     Serial.println("echo");
 }
+
 void ProgramState::getState(const Interpreter::Token*){
     Serial.println(ProgramState::get()->getCurrentStateName());
 }
+
 void ProgramState::commands(const Interpreter::Token*){
     Interpreter::ConsoleInterpreter::get()->printAvailableCommands();
 }

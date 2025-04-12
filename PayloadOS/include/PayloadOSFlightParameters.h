@@ -16,7 +16,7 @@ namespace PayloadOS{
             CovarianceWindowSize, UpwardMotionThreshold, DownwardMotionThreshold, MinimumAscentTime, MinimumDescentTime, MinimumLandingTime, OutlierCount, NumTransmissions, SENTINAL_COUNT
         };
 
-        #define PayloadOS_NumberOfFlightParameters static_cast<uint_t>(FlightParameterNames::SENTINAL_COUNT)
+        #define PayloadOS_NumberOfFlightParameters static_cast<uint_t>(PayloadOS::FlightData::FlightParameterNames::SENTINAL_COUNT)
         using ParameterData = std::array<FlightParameter, PayloadOS_NumberOfFlightParameters>;
 
         class FlightParameters{
@@ -28,6 +28,8 @@ namespace PayloadOS{
             const FlightParameter* getDataWithName(const char*) const;
             FlightParameter* getData(FlightParameterNames);
             const FlightParameter* getData(FlightParameterNames) const;
+
+            static FlightParameterNames getEnumFromIndex(uint_t);
             //commands
             static void print_c(const Interpreter::Token*);
             static void setParam_c(const Interpreter::Token*);

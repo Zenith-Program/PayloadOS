@@ -91,6 +91,7 @@ namespace PayloadOS{
         public:
             error_t init();
             TelemetryLog* getLog(TelemetryLogs);
+            SdFat* getCard();
 
             //commands------------------
             static void init_c(const Interpreter::Token*);

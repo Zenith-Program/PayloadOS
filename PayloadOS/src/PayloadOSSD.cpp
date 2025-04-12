@@ -38,6 +38,10 @@ TelemetryLog* SDFiles::getLog(TelemetryLogs log){
     }
 }
 
+SdFat* SDFiles::getCard(){
+    return &sd;
+}
+
 //singleton--------------------
 SDFiles* SDFiles::get(){
     static SDFiles instance;

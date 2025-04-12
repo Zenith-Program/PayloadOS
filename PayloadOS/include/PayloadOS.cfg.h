@@ -140,4 +140,5 @@
 #define PayloadOS_DefaultBlackBoxFileName "blackBox.txt"
 #define PayloadOS_DefaultEventFileName "event.txt"
 #define PayloadOS_DefaultToLiveMode false
+#define PayloadOS_WatchdogTimerPeriod_ms 5000
 

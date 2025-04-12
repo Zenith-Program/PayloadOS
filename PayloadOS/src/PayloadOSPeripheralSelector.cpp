@@ -383,6 +383,11 @@ const char* PeripheralSelector::getNameFromEnum(PeripheralNames name){
     }
 }
 
+PeripheralNames PeripheralSelector::getEnumFromIndex(uint_t index){
+    if(index >= PayloadOS_NumberOfPeripherals) return PeripheralNames::SENTINAL_COUNT;
+    return static_cast<PeripheralNames>(index);
+}
+
 error_t PeripheralSelector::initAll(){
     error_t error = PayloadOS::GOOD;
     if(Peripherals::PeripheralSelector::get()->getArmSwitch()->init() == PayloadOS::ERROR) error =  PayloadOS::ERROR;

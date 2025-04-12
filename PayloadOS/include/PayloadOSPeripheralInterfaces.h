@@ -6,7 +6,7 @@ namespace PayloadOS{
         enum class PeripheralNames{
             PayloadAltimeter, PayloadIMU, STEMnaut1, STEMnaut2, STEMnaut3, STEMnaut4, GPS, LightAPRSAltimeter, Transmitter, PowerCheck, ArmSwitch, SENTINAL_COUNT
         };
-        #define PayloadOS_NumberOfPeripherals static_cast<uint_t>(PeripheralNames::SENTINAL_COUNT)
+        #define PayloadOS_NumberOfPeripherals static_cast<uint_t>(PayloadOS::Peripherals::PeripheralNames::SENTINAL_COUNT)
 
         struct PeripheralStatus{
             bool init;

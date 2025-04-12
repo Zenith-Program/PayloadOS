@@ -254,7 +254,6 @@ namespace PayloadOS{
             static void ClockISR();
             //internal command interface
             uint_t getPeriod();
-        private:
             void changePeriod(uint_t);
 
         //singleton implementation

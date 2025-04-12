@@ -109,6 +109,7 @@ namespace PayloadOS{
 
             //interface functions
             static PeripheralNames getEnumFromName(const char*);
+            static PeripheralNames getEnumFromIndex(uint_t);
             static const char* getNameFromEnum(PeripheralNames);
         private:
             static int_t getIndex(PeripheralNames);

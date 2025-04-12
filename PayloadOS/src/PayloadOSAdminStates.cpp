@@ -6,6 +6,8 @@
 #include "PayloadOSSD.h"
 #include "PayloadOSFlightParameters.h"
 
+#include "PayloadOSPersistent.h"
+
 using namespace PayloadOS;
 using namespace State;
 
@@ -49,14 +51,14 @@ State::States Debug::next(){
 //helpers--------------------------------------
 
 //commands-------------------------------------
-void resumeAll(const Interpreter::Token*);
-void endAll(const Interpreter::Token*);
+void saveTest_c(const Interpreter::Token*);
+void loadTest_c(const Interpreter::Token*);
 
 const Interpreter::CommandList* Debug::getCommands(){
     static constexpr auto arr = std::array{
         CMD{"exit", "", exitDebug},
-        CMD{"endI2C", "", endAll},
-        CMD{"resumeI2C", "", resumeAll}
+        CMD{"saveTest", "", saveTest_c},
+        CMD{"loadTest", "", loadTest_c}
     };
     static const Interpreter::CommandList list(&arr.front(), arr.size());
     return &list;
@@ -66,14 +68,20 @@ void Debug::exitDebug(const Interpreter::Token*){
     exit = true;
 }
 
-void endAll(const Interpreter::Token*){
-    Wire.end();
-    Wire1.end();
+void saveTest_c(const Interpreter::Token*){
+    Reset::PersistentData data;
+    Reset::Persistent::fillData(data);
+    data.active = false;
+    data.step = 0;
+    Reset::Persistent save(FlightData::SDFiles::get()->getCard());
+    save.update(data);
 }
 
-void resumeAll(const Interpreter::Token*){
-    Wire.begin();
-    Wire1.begin();
+void loadTest_c(const Interpreter::Token*){
+    Reset::PersistentData data;
+    Reset::Persistent save(FlightData::SDFiles::get()->getCard());
+    save.read(data);
+    Reset::Persistent::applyData(data);
 }
 
 //Standby State----------------------------------------------------------------

@@ -77,6 +77,11 @@ FlightParameters* FlightParameters::get(){
     return &instance;
 }
 
+FlightParameterNames FlightParameters::getEnumFromIndex(uint_t index){
+    if(index >= PayloadOS_NumberOfFlightParameters) return FlightParameterNames::SENTINAL_COUNT;
+    return static_cast<FlightParameterNames>(index);
+}
+
 //commands-------------------------------------------
 void FlightParameters::print_c(const Interpreter::Token*){
     get()->printData();

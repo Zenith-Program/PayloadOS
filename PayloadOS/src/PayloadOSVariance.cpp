@@ -157,12 +157,20 @@ void AltimeterVariances::zeroAltimeter1(const Interpreter::Token*){
     zero1 = Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->getAltitude_ft();
 }
 
+void AltimeterVariances::setAltimeter1Zero(float_t value){
+    zero1 = value;
+}
+
 uint_t AltimeterVariances::getAltimeter1Zero(){
     return zero1;
 }
 
 void AltimeterVariances::zeroAltimeter2(const Interpreter::Token*){
     zero2 = Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->getAltitude_ft();
+}
+
+void AltimeterVariances::setAltimeter2Zero(float_t value){
+    zero2 = value;
 }
 
 uint_t AltimeterVariances::getAltimeter2Zero(){
