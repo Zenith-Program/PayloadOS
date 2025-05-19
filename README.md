@@ -27,4 +27,11 @@ This repository contains the embedded software for the payload system flown in t
 └── README.md           # You're here
 ```
 
-## Required Hardware
+## 🛠️ Required Hardware
+The payload system relies on the follwoing external hardware besides Teensy 4.1. 
+-**MS5706 Barometric Altimeter**: 
+-**BNO055 IMU**: 
+-**BNO080 IMU**: 
+-**LightAPRS Transmitter Module**: 
+The PayloadOS program can run with just a Teensy 4.1 board with limited functionality. A full HIL flight simulation can be conducted without any of the peripheral modules.
+
