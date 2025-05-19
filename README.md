@@ -1,6 +1,6 @@
 # NASA Student Launch Payload – Teensy 4.1 Flight Software
 
-This repository contains the embedded software for the payload system flown in the **2025 NASA Student Launch Competition**. Thie project was developed using [PlatformIO](https://platformio.org/) and written for the **Teensy 4.1** microcontroller. The project encompasses flight tracking algorithims, sensor integration, data logging, VHF APRS messaging, hardware in the loop testing, and a command line interface for high-power rocketry.
+This repository contains the embedded software for the payload system flown in the **2025 NASA Student Launch Competition**. The project was developed using [PlatformIO](https://platformio.org/) and written for the **Teensy 4.1** microcontroller. It encompasses flight tracking algorithims, sensor integration, data logging, VHF APRS messaging, hardware in the loop testing, and a command line interface for high-power rocketry.
 
 ## 🚀 Overview
 
@@ -29,10 +29,10 @@ This repository contains the embedded software for the payload system flown in t
 
 ## 🛠️ Required Hardware
 The payload system relies on the follwoing external hardware besides Teensy 4.1. 
-- **MS5706 Barometric Altimeter**: Connected to Teensy 4.1's I2C bus #1. Can be found [here](https://www.parallax.com/product/altimeter-module-ms5607/)
-- **BNO055 IMU**: Connected to Teensy 4.1's I2C bus #2. Can be found [here](https://www.adafruit.com/product/2472)
-- **BNO080 IMU**: Four of these (one per STEMnaut) are used. Two on I2C bus #2 and one on I2C bus #1. Can be found [here](https://www.ceva-ip.com/product/fsm-9-axis-module/)
-- **LightAPRS Transmitter Module**: Used as a secondary altimeter, battery monitor, GPS (not fully implemented), and VHF transmitter. Connected to Teensy 4.1's I2C bus #3. Can be found [here](https://www.qrp-labs.com/lightaprs.html)
+- **MS5706 Barometric Altimeter**: Connected to Teensy 4.1's I2C bus #1. It an be found [here](https://www.parallax.com/product/altimeter-module-ms5607/).
+- **BNO055 IMU**: Connected to Teensy 4.1's I2C bus #2. It can be found [here](https://www.adafruit.com/product/2472).
+- **BNO080 IMU**: Four of these (one per STEMnaut) are used. Two on I2C bus #2 and one on I2C bus #1. It can be found [here](https://www.ceva-ip.com/product/fsm-9-axis-module/).
+- **LightAPRS Transmitter Module**: Used as a secondary altimeter, battery monitor, GPS (not fully implemented), and VHF transmitter. Connected to Teensy 4.1's I2C bus #3. It can be found [here](https://www.qrp-labs.com/lightaprs.html).
 
 # Future Teams' Reference
 The PayloadOS program can run with just a Teensy 4.1 board with limited functionality. A full HIL flight simulation can be conducted without any of the peripheral modules.
