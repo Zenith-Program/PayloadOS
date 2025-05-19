@@ -29,15 +29,18 @@ This repository contains the embedded software for the payload system flown in t
 
 ## 🛠️ Required Hardware
 The payload system relies on the follwoing external hardware besides Teensy 4.1. 
-- **MS5706 Barometric Altimeter**: 
-- **BNO055 IMU**: 
-- **BNO080 IMU**: 
-- **LightAPRS Transmitter Module**:
+- **MS5706 Barometric Altimeter**: Connected to Teensy 4.1's I2C bus #1. Can be found [here](https://www.parallax.com/product/altimeter-module-ms5607/)
+- **BNO055 IMU**: Connected to Teensy 4.1's I2C bus #2. Can be found [here](https://www.adafruit.com/product/2472)
+- **BNO080 IMU**: Four of these (one per STEMnaut) are used. Two on I2C bus #2 and one on I2C bus #1. Can be found [here](https://www.ceva-ip.com/product/fsm-9-axis-module/)
+- **LightAPRS Transmitter Module**: Used as a secondary altimeter, battery monitor, GPS (not fully implemented), and VHF transmitter. Connected to Teensy 4.1's I2C bus #3. Can be found [here](https://www.qrp-labs.com/lightaprs.html)
 
-## 📈 Telemetry Format
-Telemetry is stored in .txt files with entries seperated by spaces and newlines. [Here](README.md) is an example file. A .csv MATLAB conversion script found here can be used to reformat the generated .txt files. An event log is also maintained durring flight as a .txt file. 
 # Future Teams' Reference
 The PayloadOS program can run with just a Teensy 4.1 board with limited functionality. A full HIL flight simulation can be conducted without any of the peripheral modules.
 ## Environment Setup
+
+## Telemetry Format
+Telemetry is stored in .txt files with entries seperated by spaces and newlines. [Here](README.md) is an example file. A .csv MATLAB conversion script found here can be used to reformat the generated .txt files. An event log is also maintained durring flight as a .txt file. 
+
+## Reccomendations
 
 
