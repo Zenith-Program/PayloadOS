@@ -384,18 +384,19 @@ const char* PeripheralSelector::getNameFromEnum(PeripheralNames name){
 }
 
 error_t PeripheralSelector::initAll(){
-    if(Peripherals::PeripheralSelector::get()->getArmSwitch()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    if(Peripherals::PeripheralSelector::get()->getPowerCheck()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    if(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    if(Peripherals::PeripheralSelector::get()->getPayloadIMU()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    if(Peripherals::PeripheralSelector::get()->getTransmitter()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    if(Peripherals::PeripheralSelector::get()->getGPS()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    if(Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    if(Peripherals::PeripheralSelector::get()->getSTEMnaut1()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    if(Peripherals::PeripheralSelector::get()->getSTEMnaut2()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    if(Peripherals::PeripheralSelector::get()->getSTEMnaut3()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    if(Peripherals::PeripheralSelector::get()->getSTEMnaut4()->init() == PayloadOS::ERROR) return PayloadOS::ERROR;
-    return PayloadOS::GOOD;
+    error_t error = PayloadOS::GOOD;
+    if(Peripherals::PeripheralSelector::get()->getArmSwitch()->init() == PayloadOS::ERROR) error =  PayloadOS::ERROR;
+    if(Peripherals::PeripheralSelector::get()->getPowerCheck()->init() == PayloadOS::ERROR) error = PayloadOS::ERROR;
+    if(Peripherals::PeripheralSelector::get()->getPayloadAltimeter()->init() == PayloadOS::ERROR) error = PayloadOS::ERROR;
+    if(Peripherals::PeripheralSelector::get()->getPayloadIMU()->init() == PayloadOS::ERROR) error = PayloadOS::ERROR;
+    if(Peripherals::PeripheralSelector::get()->getTransmitter()->init() == PayloadOS::ERROR) error = PayloadOS::ERROR;
+    if(Peripherals::PeripheralSelector::get()->getGPS()->init() == PayloadOS::ERROR) error = PayloadOS::ERROR;
+    if(Peripherals::PeripheralSelector::get()->getLightAPRSAltimeter()->init() == PayloadOS::ERROR) error = PayloadOS::ERROR;
+    if(Peripherals::PeripheralSelector::get()->getSTEMnaut1()->init() == PayloadOS::ERROR) error = PayloadOS::ERROR;
+    if(Peripherals::PeripheralSelector::get()->getSTEMnaut2()->init() == PayloadOS::ERROR) error = PayloadOS::ERROR;
+    if(Peripherals::PeripheralSelector::get()->getSTEMnaut3()->init() == PayloadOS::ERROR) error = PayloadOS::ERROR;
+    if(Peripherals::PeripheralSelector::get()->getSTEMnaut4()->init() == PayloadOS::ERROR) error = PayloadOS::ERROR;
+    return error;
 }
 
 error_t PeripheralSelector::init(PeripheralNames name){

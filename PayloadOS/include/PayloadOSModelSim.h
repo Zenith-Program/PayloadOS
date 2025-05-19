@@ -1,22 +1,11 @@
 #pragma once
-#include "PayloadOSGeneral.h"
-#include "PayloadOSPeripheralInterfaces.h"
 #include <IntervalTimer.h>
-#include "PayloadOSCommandList.h"
+#include "PayloadOSGeneral.h"
+#include "PayloadOSSimulation.h"
 
 namespace PayloadOS{
     namespace Simulation{
         namespace Model{
-            struct UpdateParams{
-                bool change;
-                Peripherals::GPSData gps;
-                float_t altitude, altitude2;
-                Peripherals::LinearVector acceleration0, acceleration1, acceleration2, acceleration3, acceleration4;
-                Peripherals::RotationVector angularVelocity0, angularVelocity1, angularVelocity2, angularVelocity3, angularVelocity4;
-                Peripherals::LinearVector gravity0, gravity1, gravity2, gravity3, gravity4;
-                float_t voltage, temp, pressure, temp2, pressure2;
-                bool arm;
-            };
 
             class SimState {
             public:

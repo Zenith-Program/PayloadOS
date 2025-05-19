@@ -72,7 +72,9 @@
  * PayloadOS_CommandBufferSize - specifies the size of the buffer that stores command names durring interpretation. This limits the size of commands.
  * PayloadOS_InternalCommandBufferSize - specifies the size of the buffer that internal OS commands use to copy string their arguments to. This limits the size of strings that can be passed to them.
  * PayloadOS_LogFileNameSize - specifies the size of the buffer that stores the name of the log file
+ * PayloadOS_LogParseBufferSize - specifies the size of the buffer that is used to perse SD data
  * PayloadOS_SimulationFileNameSize - specifies the size of the buffer that stores the name of the simulation data file
+ * PayloadOS_VarianceBufferSize - specifies the size of the buffer used by running variance. The running variance may have at most this length
 */
 
 #define PayloadOS_CommandListSize 16
@@ -82,7 +84,9 @@
 #define PayloadOS_CommandBufferSize 64
 #define PayloadOS_InternalCommandBufferSize 64
 #define PayloadOS_LogFileNameSize 64
+#define PayloadOS_LogParseBufferSize 1024
 #define PayloadOS_SimulationFileNameSize 64
+#define PayloadOS_VarianceBufferSize 512
 
 /*Sensor Configurations
  * Macros: 
@@ -98,20 +102,42 @@
 #define PayloadOS_STEMnautMagnetometerSamplePeriod 50
 
 /*Simulation configurations
+ * Not Modifiable Macros:
+ * PayloadOS_ChooseModelSim
+ * PayloadOS_ChooseDataSim
  * Macros:
+ * PayloadOS_DefaultSimulation - choose which simulation is the default
  * PayloadOS_ModelSim_ProcessOrder - order of the random process generator. Determines how complex the processes it generates are
+ * PayloadOS_ModelSimDefaultClockPeriod_us - default clock speed of model sim
+ * PayloadOS_DataSimDefaultFileName - default file that dataSim will attempt to read from
+ * PayloadOS_DataSimDefaultClockPeriod_us - default clock speed of data sim
 */
 
+//------------------------------
+#define PayloadOS_ChooseModelSim 0
+#define PayloadOS_ChooseDataSim 1
+//------------------------------
+
+#define PayloadOS_DefaultSimulation PayloadOS_ChooseDataSim
 #define PayloadOS_ModelSim_ProcessOrder 5
+#define PayloadOS_ModelSimDefaultClockPeriod_us 50000
+#define PayloadOS_DataSimDefaultFileName "dataSim.txt"
+#define PayloadOS_DataSimDefaultClockPeriod_us 125000
 
 /*Other Configurations-----------------------------------------
  * Macros:
  * PayloadOS_ConsoleBaudRate - baud rate of the console. Make sure that serial monitor or whatever console program you're usign matches this
  * PayloadOS_DefaultSamplePeriod - period of the state machine in us. Logs occur at this frequency
+ * PayloadOS_DefaultAnalysisFileName - default file that analysis files will be stored in
+ * PayloadOS_DefaultBlackBoxFileName - default file that balck box files will be stored in
+ * PayloadOS_DefaultEventFileName - default file that event logs will be stored in
+ * PayloadOS_DefaultToLiveMode - print variances live durring flight
 */
 
 #define PayloadOS_ConsoleBaudRate 115200
-#define PayloadOS_DefaultSamplePeriod 1000000
+#define PayloadOS_DefaultSamplePeriod 125000
+#define PayloadOS_DefaultAnalysisFileName "analysis.txt"
+#define PayloadOS_DefaultBlackBoxFileName "blackBox.txt"
+#define PayloadOS_DefaultEventFileName "event.txt"
+#define PayloadOS_DefaultToLiveMode false
 
-/*
-*/

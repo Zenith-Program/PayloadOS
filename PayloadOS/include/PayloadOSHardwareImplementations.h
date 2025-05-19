@@ -1,7 +1,7 @@
 #pragma once
 #include "PayloadOSPeripheralInterfaces.h"
 #include "Adafruit_BNO055.h"
-#include "SparkFun_BNO080_Arduino_Library.h"
+#include "Adafruit_BNO08x.h"
 #include <MS5607.h>
 
 namespace PayloadOS{
@@ -47,7 +47,6 @@ namespace PayloadOS{
 
         class TransmitterHardware : public Peripherals::TransmitterInterface{
             bool init_m;
-            uint_t timeOfLastTransmission;
         public:
             TransmitterHardware();
             error_t transmitString(const char*) override;
@@ -56,6 +55,7 @@ namespace PayloadOS{
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
             void printReport() override;
+        private:
         };
 
         class GPSHardware : public Peripherals::GPSInterface{
@@ -88,7 +88,13 @@ namespace PayloadOS{
         };
 
         class STEMnaut1Hardware : public Peripherals::IMUInterface{
+            bool init_m;
+            STEMnaut1Lib::Adafruit_BNO08x imu;
+            Peripherals::LinearVector acceleration;
+            Peripherals::RotationVector angularVelocity;
+            Peripherals::LinearVector gravity;
         public:
+            STEMnaut1Hardware();
             Peripherals::LinearVector getAcceleration_m_s2() override;
             Peripherals::RotationVector getAngularVelocity_deg_s() override;
             Peripherals::LinearVector getGravityVector() override;
@@ -96,10 +102,20 @@ namespace PayloadOS{
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
             void printReport() override;
+        private:
+            error_t checkConnection();
+            bool updateReadings();
+            error_t updateInitStatus();
         };
 
         class STEMnaut2Hardware : public Peripherals::IMUInterface{
+            bool init_m;
+            STEMnaut1Lib::Adafruit_BNO08x imu;
+            Peripherals::LinearVector acceleration;
+            Peripherals::RotationVector angularVelocity;
+            Peripherals::LinearVector gravity;
         public:
+            STEMnaut2Hardware();
             Peripherals::LinearVector getAcceleration_m_s2() override;
             Peripherals::RotationVector getAngularVelocity_deg_s() override;
             Peripherals::LinearVector getGravityVector() override;
@@ -107,10 +123,19 @@ namespace PayloadOS{
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
             void printReport() override;
+        private:
+            bool updateReadings();
+            error_t updateInitStatus();
         };
 
         class STEMnaut3Hardware : public Peripherals::IMUInterface{
+            bool init_m;
+            STEMnaut1Lib::Adafruit_BNO08x imu;
+            Peripherals::LinearVector acceleration;
+            Peripherals::RotationVector angularVelocity;
+            Peripherals::LinearVector gravity;
         public:
+            STEMnaut3Hardware();
             Peripherals::LinearVector getAcceleration_m_s2() override;
             Peripherals::RotationVector getAngularVelocity_deg_s() override;
             Peripherals::LinearVector getGravityVector() override;
@@ -118,11 +143,14 @@ namespace PayloadOS{
             Peripherals::PeripheralStatus status() override;
             error_t deInit()override;
             void printReport() override;
+        private:
+            bool updateReadings();
+            error_t updateInitStatus();
         };
 
         class STEMnaut4Hardware : public Peripherals::IMUInterface{
             bool init_m;
-            BNO080 imu;
+            STEMnaut1Lib::Adafruit_BNO08x imu;
             Peripherals::LinearVector acceleration;
             Peripherals::RotationVector angularVelocity;
             Peripherals::LinearVector gravity;
@@ -137,8 +165,7 @@ namespace PayloadOS{
             void printReport() override;
         private:
             bool updateReadings();
-            uint_t updateInitStatus();
-            static const char* getResetMeaning(uint_t);
+            error_t updateInitStatus();
         };
 
         class PowerCheckHardware : public Peripherals::PowerCheckInterface{
