@@ -25,5 +25,6 @@ This repository contains the embedded software for the payload system flown in t
 ├── test/               # Unit tests (if any)
 ├── platformio.ini      # PlatformIO configuration
 └── README.md           # You're here
+```
 
 ## Required Hardware
