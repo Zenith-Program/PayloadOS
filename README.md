@@ -32,6 +32,12 @@ The payload system relies on the follwoing external hardware besides Teensy 4.1.
 - **MS5706 Barometric Altimeter**: 
 - **BNO055 IMU**: 
 - **BNO080 IMU**: 
-- **LightAPRS Transmitter Module**: 
+- **LightAPRS Transmitter Module**:
+
+## 📈 Telemetry Format
+Telemetry is stored in .txt files with entries seperated by spaces and newlines. [Here](README.md) is an example file. A .csv MATLAB conversion script found here can be used to reformat the generated .txt files. An event log is also maintained durring flight as a .txt file. 
+# Future Teams' Reference
 The PayloadOS program can run with just a Teensy 4.1 board with limited functionality. A full HIL flight simulation can be conducted without any of the peripheral modules.
+## Environment Setup
+
 
