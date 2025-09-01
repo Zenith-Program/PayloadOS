@@ -1,6 +1,6 @@
 # NASA Student Launch Payload – Teensy 4.1 Flight Software
 
-This repository contains the embedded flight software for the FAMU-FSU College of Engineering's **2024-2025 NASA Student Launch Competition** payload experiment. The project was developed using [PlatformIO](https://platformio.org/) and written for the **Teensy 4.1** microcontroller. It encompasses flight tracking algorithims, sensor integration, data logging, VHF APRS messaging, hardware in the loop testing, and a command line interface.
+This repository contains the embedded flight software for the FAMU-FSU College of Engineering's **2024-2025 NASA Student Launch Competition** payload experiment. The project was developed using [PlatformIO](https://platformio.org/) and written for the **Teensy 4.1** microcontroller. It encompasses flight tracking algorithims, sensor integration, data logging, VHF APRS messaging, software in the loop testing, and a command line interface.
 
 ## Overview
 
