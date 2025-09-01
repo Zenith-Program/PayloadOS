@@ -17,7 +17,7 @@ This repository contains the embedded flight software for the FAMU-FSU College o
 ```bash
 .
 ├── include/            # Header files
-├── lib/                # External libraries - [BNO055](https://github.com/adafruit/Adafruit_BNO055), [BNO080](https://github.com/adafruit/Adafruit_BNO08x), [MS5607](https://github.com/UravuLabs/MS5607)
+├── lib/                # External libraries - Adafurit BNO055, Adafruit BNO080, Uravu LabsMS5607
 ├── src/                # Source code
 │   ├── main.cpp        # Main entry point
 │   └── ...             # Other modules
@@ -27,9 +27,9 @@ This repository contains the embedded flight software for the FAMU-FSU College o
 
 ## Required Hardware
 The payload system relies on external hardware: 
-- **MS5706 Barometric Altimeter**: Connected to Teensy 4.1's I2C bus #1. It an be found [here](https://www.parallax.com/product/altimeter-module-ms5607/).
-- **BNO055 IMU**: Connected to Teensy 4.1's I2C bus #2. It can be found [here](https://www.adafruit.com/product/2472).
-- **BNO080 IMU**: Four of these (one per STEMnaut) are used. Two on I2C bus #2 and one on I2C bus #1. It can be found [here](https://www.ceva-ip.com/product/fsm-9-axis-module/).
+- **MS5706 Barometric Altimeter**: Connected to Teensy 4.1's I2C bus #1. It an be found [here](https://www.parallax.com/product/altimeter-module-ms5607/). Library implementation found [here](https://github.com/UravuLabs/MS5607).
+- **BNO055 IMU**: Connected to Teensy 4.1's I2C bus #2. It can be found [here](https://www.adafruit.com/product/2472). Library implementation found [here](https://github.com/adafruit/Adafruit_BNO055).
+- **BNO080 IMU**: Four of these (one per STEMnaut) are used. Two on I2C bus #2 and one on I2C bus #1. It can be found [here](https://www.ceva-ip.com/product/fsm-9-axis-module/). Library implementation found [here](https://github.com/adafruit/Adafruit_BNO08x).
 - **LightAPRS Transmitter Module**: Used as a secondary altimeter, battery monitor, GPS (not fully implemented), and VHF transmitter. Connected to Teensy 4.1's I2C bus #3. It can be found [here](https://www.qrp-labs.com/lightaprs.html).
 
 # Future Teams' Reference
