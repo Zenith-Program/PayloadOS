@@ -33,7 +33,7 @@ The payload system relies on external hardware:
 - **LightAPRS Transmitter Module**: Used as a secondary altimeter, battery monitor, GPS (not fully implemented), and VHF transmitter. Connected to Teensy 4.1's I2C bus #3. It can be found [here](https://www.qrp-labs.com/lightaprs.html).
 
 # Future Teams' Reference
-The PayloadOS program can run with just a Teensy 4.1 board with limited functionality. A full flight simulation can be conducted using simulation data found here. Only the teensy board is required for this. If you are looking for example code to get started with or use as reference, I'd reccomend you look at the [RocketOS](https://github.com/Zenith-Program/RocketOS) repository instead. It contains source code, tools, and better documentation for the airbrakes system, which in many ways is a refined version of the payload system. 
+The PayloadOS program can run with just a Teensy 4.1 board with limited functionality. If you are looking for example code to get started with or use as reference, I'd reccomend you look at the [RocketOS](https://github.com/Zenith-Program/RocketOS) repository instead. It contains source code, tools, and better documentation for the airbrakes system, which in many ways is a refined version of the payload system. 
 
 
 
